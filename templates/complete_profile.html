@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Completar Perfil - ServiçosPro{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2>Complete seu Perfil Profissional</h2>
+                <p class="subtitle">Adicione informações sobre seus serviços</p>
+                
+                <form method="POST" action="{{ url_for('complete_professional_profile') }}">
+                    <div class="form-group">
+                        <label for="category_id">Categoria Principal</label>
+                        <select id="category_id" name="category_id" required class="form-input">
+                            <option value="">Selecione uma categoria</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Sobre Você</label>
+                        <textarea id="bio" name="bio" rows="4" class="form-input" placeholder="Descreva sua experiência e especialidades"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experience_years">Anos de Experiência</label>
+                        <input type="number" id="experience_years" name="experience_years" class="form-input" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="starting_price">Preço Inicial (R$)</label>
+                        <input type="number" id="starting_price" name="starting_price" step="0.01" class="form-input" placeholder="100.00">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-block">Salvar Perfil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

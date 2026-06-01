@@ -1,0 +1,28 @@
+ body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #1e3a8a, #9333ea);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+.login-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+}
+.login-card .logo {
+    font-size: 3rem;
+    color: #2563eb;
+}
+.btn-custom {
+    border-radius: 50px;
+    font-weight: 600;
+    padding: 12px;
+}
+.form-floating label {
+    color: #6b7280;
+}

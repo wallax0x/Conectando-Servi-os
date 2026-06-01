@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-overlay">
+        <div class="container hero-content">
+            <h1>Encontre o Profissional Perfeito para Seu Projeto</h1>
+            <p>Conectamos você com os melhores prestadores de serviço da sua região</p>
+
+            <form action="{{ url_for('search') }}" method="get" class="hero-search">
+                <select name="category" class="search-input">
+                    <option value="">Qual serviço você precisa?</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Categorias Populares</h2>
+
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="{{ url_for('search') }}?category={{ category.id }}" class="category-card">
+                <i class="fas {{ category.icon or 'fa-tools' }}"></i>
+                <h3>{{ category.name }}</h3>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section bg-light">
+    <div class="container">
+        <h2 class="section-title">Profissionais em Destaque</h2>
+
+        <div class="professionals-grid">
+            {% for prof in professionals %}
+            <div class="professional-card">
+                <div class="prof-photo">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>{{ prof.user.name }}</h3>
+                <p class="category">{{ prof.category.name }}</p>
+
+                <div class="rating">
+                    {% for i in range(5) %}
+                    {% if i < prof.average_rating %} <i class="fas fa-star"></i>
+                        {% else %}
+                        <i class="far fa-star"></i>
+                        {% endif %}
+                        {% endfor %}
+                        <span>({{ prof.review_count }})</span>
+                </div>
+
+                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ prof.user.city }}, {{ prof.user.state }}
+                </p>
+
+                {% if prof.starting_price %}
+                <p class="price">A partir de R$ {{ "%.2f"|format(prof.starting_price | default(0)) }}</p>
+                {% endif %}
+                <a href="{{ url_for('professional_profile', professional_id=prof.id) }}" class="btn-primary btn-block">Ver Perfil</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Como Funciona</h2>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Descreva o Serviço</h3>
+                <p>Conte-nos o que você precisa e onde você está</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Encontre Profissionais</h3>
+                <p>Compare perfis, avaliações e orçamentos</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Solicite Orçamentos</h3>
+                <p>Entre em contato diretamente com os profissionais</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Contrate com Confiança</h3>
+                <p>Escolha o melhor profissional para seu projeto</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

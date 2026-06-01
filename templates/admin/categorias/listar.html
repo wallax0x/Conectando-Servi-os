@@ -1,0 +1,64 @@
+{% extends 'admin/base.html' %}
+{% block title %} Listar Categoria {% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Categorias Cadastradas</h1>
+        </div>
+        <div class="col text-end">
+            <a href="{{url_for('adicionar_categoria')}}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Nova Categoria
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+
+        <div class="card-body p-0">
+
+            <table class="table table-striped m-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Ativos</th>
+                        <th>Imagem</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for i in categorias %}
+
+                        <td>{{i.id}}</td>
+                        <td>{{i.name}}</td>
+                        <td>{{i['ativo']}}</td>
+                        <td><img src="data:image/jpeg;base64,{{i['imagem']}}" width="100px"></td>
+
+
+
+                        <span class="text-muted"></span>
+
+                        </td>
+
+                        <td>
+                            <a href="#" class="btn btn-sm btn-info">Detalhes</a>
+                            <a href="{{url_for('editar_categoria', id=i['id'])}}"
+                                class="btn btn-sm btn-warning">Editar</a>
+
+                            <form action="{{url_for('deletar_categoria', id=i['id'])}}" method="POST"
+                                style="display:inline;" onsubmit="return confirm('Deseja excluir a categoria?')">
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

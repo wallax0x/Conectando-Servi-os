@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Pedidos - Conectando Serviços{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos Customizados para o Dashboard do Profissional */
+    .dashboard-container {
+        max-width: 1000px;
+        margin: 20px auto;
+    }
+    .request-card {
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .request-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+    .status-badge {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    .info-value {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    .description-box {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #198754; /* Verde para Profissional */
+    }
+    .card-footer {
+        border-top: 1px solid #f0f0f0;
+    }
+</style>
+
+<section class="section mt-5">
+    <div class="container dashboard-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Painel de Solicitações Recebidas</h2>
+        </div>
+        
+        <div class="row">
+            {% if requests %}
+                {% for req in requests %}
+                <div class="col-12 mb-4">
+                    <div class="card request-card shadow-sm border-0">
+                        <!-- CABEÇALHO DO CARD -->
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0 text-primary">
+                                <i class="fas fa-user me-2"></i>{{ req.client.name }}
+                            </h5>
+                            
+                            {# Badge de Status Dinâmico #}
+                            <span class="status-badge 
+                                {% if req.status == 'concluido' or req.status == 'completed' %} bg-success text-white
+                                {% elif req.status == 'aceito' or req.status == 'accepted' %} bg-info text-white
+                                {% elif req.status == 'CANCELADO' %} bg-danger text-white
+                                {% else %} bg-warning text-dark {% endif %}">
+                                
+                                <i class="fas 
+                                    {% if req.status == 'concluido' or req.status == 'completed' %} fa-check-circle
+                                    {% elif req.status == 'aceito' or req.status == 'accepted' %} fa-handshake
+                                    {% elif req.status == 'CANCELADO' %} fa-ban
+                                    {% else %} fa-clock {% endif %} me-1"></i>
+                                
+                                {{ req.status | upper }}
+                            </span>
+                        </div>
+
+                        <!-- CORPO DO CARD -->
+                        <div class="card-body px-4 pb-3">
+                            <h6 class="fw-bold text-dark mt-2">{{ req.title or 'Solicitação de Serviço' }}</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-7">
+                                    <div class="description-box mb-3">
+                                        <span class="info-label mb-1 d-block text-dark small text-uppercase">Descrição:</span>
+                                        <p class="mb-0 info-value fst-italic">"{{ req.description }}"</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-5 border-start d-none d-md-block ps-4">
+                                    {% if req.budget %}
+                                    <p class="mb-2">
+                                        <span class="info-label"><i class="fas fa-money-bill-wave text-success me-2"></i>Orçamento do Cliente:</span><br>
+                                        <span class="info-value">R$ {{ "%.2f"|format(req.budget) }}</span>
+                                    </p>
+                                    {% endif %}
+                                    <p class="mb-0">
+                                        <span class="info-label"><i class="fas fa-calendar-alt text-muted me-2"></i>Recebido em:</span><br>
+                                        <span class="info-value small">{{ req.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RODAPÉ DO CARD / AÇÕES -->
+                        <div class="card-footer bg-white p-3 d-flex flex-wrap justify-content-end gap-2 border-0">
+                            {% if req.status != 'CANCELADO' %}
+                                
+                                {# Botão do Chat #}
+                                <a href="{{ url_for('chat', request_id=req.id) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
+                                    <i class="fas fa-comments me-1"></i> Abrir Chat
+                                </a>
+
+                                {# Ações de Pendente #}
+                                {% if req.status == 'pendente' or req.status == 'pending' %}
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='aceito') }}" class="btn btn-success rounded-pill px-3 btn-sm">
+                                        <i class="fas fa-check me-1"></i> Aceitar Pedido
+                                    </a>
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='recusado') }}" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
+                                        <i class="fas fa-times me-1"></i> Recusar
+                                    </a>
+                                {% endif %}
+
+                                {# Ação de Aceito #}
+                                {% if req.status == 'aceito' or req.status == 'accepted' %}
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='concluido') }}" class="btn btn-primary rounded-pill px-3 btn-sm">
+                                        <i class="fas fa-flag-checkered me-1"></i> Marcar como Concluído
+                                    </a>
+                                {% endif %}
+
+                                {# Botão de Cancelar / Desistir #}
+                                {% if req.status in ['pendente', 'pending', 'orcamento_enviado', 'aceito', 'accepted'] %}
+                                    <form action="{{ url_for('profissional_cancela_pedido', request_id=req.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja cancelar este serviço? O cliente será notificado.');">
+                                        <button type="submit" class="btn btn-outline-danger rounded-pill px-3 btn-sm">
+                                            <i class="fas fa-times-circle me-1"></i> Cancelar Serviço
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                {# Badge para serviço cancelado #}
+                                <span class="badge bg-danger rounded-pill py-2 px-3">Serviço Cancelado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5 w-100 bg-white rounded shadow-sm">
+                    <div class="mb-4">
+                        <i class="fas fa-inbox fa-4x text-muted opacity-25"></i>
+                    </div>
+                    <p class="lead text-muted">Você ainda não recebeu nenhuma solicitação de serviço.</p>
+                    <a href="{{ url_for('perfil') }}" class="btn btn-primary rounded-pill px-4">Ver Meu Perfil</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

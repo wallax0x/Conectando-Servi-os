@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - {{ service_request.title }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos Customizados para o Chat */
+    .chat-container {
+        max-width: 900px;
+        margin: 20px auto;
+    }
+    .chat-box {
+        height: 60vh;
+        min-height: 400px;
+        overflow-y: auto;
+        background-color: #f0f2f5;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+    .message-bubble {
+        max-width: 70%;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 18px;
+        position: relative;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .message-sent {
+        align-self: flex-end;
+        background-color: #0084ff;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .message-received {
+        align-self: flex-start;
+        background-color: white;
+        color: #1c1e21;
+        border-bottom-left-radius: 4px;
+    }
+    .message-info {
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+        display: block;
+    }
+    .message-time {
+        font-size: 0.7rem;
+        display: block;
+        text-align: right;
+        margin-top: 4px;
+        opacity: 0.8;
+    }
+    .negotiation-bar {
+        background-color: #fff9e6;
+        border-bottom: 1px solid #ffeeba;
+    }
+    .chat-footer {
+        background-color: white;
+        padding: 15px;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+<div class="container chat-container">
+    <div class="card shadow-lg border-0 overflow-hidden" style="border-radius: 15px;">
+        <!-- Header do Chat -->
+        <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-comments text-primary me-2"></i>
+                    {{ service_request.title or 'Negociação de Serviço' }}
+                </h5>
+                <span class="badge {% if service_request.status == 'aceito' %}bg-success{% else %}bg-primary{% endif %} mt-1">
+                    {{ service_request.status | upper }}
+                </span>
+            </div>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
+            </a>
+        </div>
+
+        <!-- Área de Negociação -->
+        <div class="negotiation-bar p-3">
+            {% set is_client = current_user.id == service_request.client_id %}
+            {% set is_prof = current_user.user_type == 'professional' and not is_client %}
+            
+            {% if service_request.status == 'pendente' %}
+                {% if is_prof %}
+                    <form action="{{ url_for('enviar_orcamento', request_id=service_request.id) }}" method="POST" class="row g-2 align-items-center justify-content-center">
+                        <div class="col-auto">
+                            <span class="fw-bold">Propor Orçamento Final:</span>
+                        </div>
+                        <div class="col-auto">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" step="0.01" min="1" name="final_price" class="form-control" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-warning btn-sm fw-bold">Enviar Proposta</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="text-center small text-muted">
+                        <i class="fas fa-clock me-1"></i> Aguardando o profissional enviar o orçamento final.
+                    </div>
+                {% endif %}
+                
+            {% elif service_request.status == 'orcamento_enviado' %}
+                <div class="text-center p-2 rounded" style="background-color: #fff3cd;">
+                    <span class="fw-bold d-block mb-2">Orçamento Proposto: R$ {{ "%.2f"|format(service_request.final_price) if service_request.final_price else '0.00' }}</span>
+                    {% if is_client %}
+                        <form action="{{ url_for('responder_orcamento', request_id=service_request.id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="acao" value="aceitar">
+                            <button type="submit" class="btn btn-success btn-sm px-4 me-2"><i class="fas fa-check me-1"></i> Aceitar</button>
+                        </form>
+                        <form action="{{ url_for('responder_orcamento', request_id=service_request.id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="acao" value="recusar">
+                            <button type="submit" class="btn btn-danger btn-sm px-4"><i class="fas fa-times me-1"></i> Recusar</button>
+                        </form>
+                    {% else %}
+                        <small class="text-muted">Aguardando resposta do cliente...</small>
+                    {% endif %}
+                </div>
+                
+            {% elif service_request.status == 'aceito' %}
+                <div class="alert alert-success mb-0 text-center py-2">
+                    <i class="fas fa-check-circle me-1"></i> <strong>Serviço Fechado!</strong> Valor acordado: R$ {{ "%.2f"|format(service_request.final_price) if service_request.final_price else '0.00' }}
+                </div>
+            {% elif service_request.status == 'recusado' %}
+                <div class="alert alert-danger mb-0 text-center py-2">
+                    <i class="fas fa-times-circle me-1"></i> <strong>Orçamento Recusado.</strong>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Box de Mensagens -->
+        <div id="chat-box" class="chat-box">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="message-bubble {% if msg.sender_id == current_user.id %}message-sent{% else %}message-received{% endif %}">
+                        {% if msg.sender_id != current_user.id %}
+                            <small class="message-info fw-bold">{{ msg.sender.name }}</small>
+                        {% endif %}
+                        <div class="message-content">
+                            {{ msg.content }}
+                        </div>
+                        <small class="message-time">
+                            {{ msg.timestamp.strftime('%H:%M') }}
+                        </small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center my-auto p-5 text-muted">
+                    <i class="fas fa-comments fa-3x mb-3 opacity-25"></i>
+                    <p>Inicie a conversa! Tire suas dúvidas sobre o serviço aqui.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer / Input de Mensagem -->
+        <div class="chat-footer">
+            <form method="POST" class="m-0">
+                <div class="input-group">
+                    <input type="text" name="content" class="form-control rounded-pill-start border-end-0" 
+                           placeholder="Digite sua mensagem..." required autocomplete="off"
+                           style="border-radius: 25px 0 0 25px; padding-left: 20px;">
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill-end" 
+                            style="border-radius: 0 25px 25px 0;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Função para manter o scroll no final
+    function scrollToBottom() {
+        var chatBox = document.getElementById("chat-box");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    window.onload = scrollToBottom;
+</script>
+{% endblock %}

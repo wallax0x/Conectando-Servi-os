@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Editar Perfil Profissional</h2>
+
+<form method="POST">
+
+    <label>Categoria</label>
+    <select name="category_id">
+        {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if prof.category_id == cat.id %}selected{% endif %}>
+            {{ cat.name }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <label>Biografia</label>
+    <textarea name="bio">{{ prof.bio }}</textarea>
+
+    <label>Anos de Experiência</label>
+    <input type="number" name="experience_years" value="{{ prof.experience_years }}">
+
+    <label>Preço Inicial</label>
+    <input type="number" step="0.01" name="starting_price" value="{{ prof.starting_price }}">
+
+    <!-- Novas funcionalidades -->
+    <label>Tags</label>
+    <input type="text" name="tags" value="{{ prof.tags }}">
+
+    <label>Disponibilidade</label>
+    <input type="text" name="availability" value="{{ prof.availability }}">
+
+    <button type="submit" class="btn-primary">Salvar</button>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'admin/base.html' %}
+{% block title %} Editar Profissão {% endblock %}
+
+{% block content %}
+<div class="content">
+    <h3 style="background-color: rgb(198, 197, 197);">
+        Editar Profissão </h3>
+    <div class="container">
+        <form method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="nome_categoria">Nome da Profissão:</label>
+                <input type="text" class="form-control" id="nome_produto" value="{{profissoes.nome}}" name="nome_produto"
+                    required>
+            </div>
+            <div class="form-group">
+                <label for="descricao">Descrição:</label>
+                <input type="text" class="form-control" id="descricao" value="{{profissoes.descricao}}" name="descricao"
+                    required>
+            </div>
+            <div class="form-group">
+                <label for="ativo" class="form-label">Status:</label>
+                <select name="ativo" class="form-select">
+                    <option value="True" {% if produto.ativo=='True' %}select{% endif %}>Ativo</option>
+                    <option value="False" {% if produto.ativo=='False' %}select{% endif %}>Inativo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Imagem">Imagem Atual:</label>
+                <img src="data:image/jpeg;base64,{{produto['imagem']}}" alt="Imagem Atual" style="width: 100px;">
+            </div>
+
+            <div class="form-group">
+                <label for="Imagem">Nova Imagem:</label>
+                <input type="file" class="form-control" id="Imagem" name="Imagem" required>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">Salvar Alteração</button>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

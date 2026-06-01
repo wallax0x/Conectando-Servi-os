@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Editar Meu Perfil{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 900px; margin-top: 40px;">
+
+    <h2 class="page-title">Editar Meu Perfil</h2>
+
+    <form method="POST" class="form-card">
+
+        <!-- DADOS DO USUÁRIO -->
+        <h3 class="section-title">Informações Pessoais</h3>
+
+        <div class="form-grid">
+
+            <div>
+                <label>Nome</label>
+                <input type="text" name="name" value="{{ user.name }}" required>
+            </div>
+
+            <div>
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}" required>
+            </div>
+
+            <div>
+                <label>Telefone</label>
+                <input type="text" name="phone" value="{{ user.phone }}">
+            </div>
+
+            <div>
+                <label>CEP</label>
+                <input type="text" name="cep" value="{{ user.cep }}">
+            </div>
+
+            <div class="full">
+                <label>Endereço</label>
+                <input type="text" name="address" value="{{ user.address }}">
+            </div>
+
+            <div>
+                <label>Bairro</label>
+                <input type="text" name="neighborhood" value="{{ user.neighborhood }}">
+            </div>
+
+            <div>
+                <label>Cidade</label>
+                <input type="text" name="city" value="{{ user.city }}">
+            </div>
+
+            <div>
+                <label>Estado</label>
+                <input type="text" name="state" value="{{ user.state }}">
+            </div>
+
+        </div>
+
+        <hr>
+
+        {% if prof %}
+        <!-- DADOS DO PROFISSIONAL -->
+        <h3 class="section-title">Perfil Profissional</h3>
+
+        <div class="form-grid">
+
+            <div>
+                <label>Categoria / Profissão</label>
+                <select name="category_id" required>
+                    <option value="">Selecione</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if prof.category_id==c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Anos de Experiência</label>
+                <input type="number" name="experience_years" value="{{ prof.experience_years }}">
+            </div>
+
+            <div>
+                <label>Preço Inicial (R$)</label>
+                <input type="number" name="starting_price" value="{{ prof.starting_price }}">
+            </div>
+
+            <div>
+                <label>Tempo Médio de Resposta</label>
+                <input type="text" name="response_time" value="{{ prof.response_time }}">
+            </div>
+
+            <div class="full">
+                <label>Biografia</label>
+                <textarea name="bio" rows="4">{{ prof.bio }}</textarea>
+            </div>
+
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-primary" style="margin-top: 20px;">
+            Salvar Alterações
+        </button>
+
+    </form>
+</div>
+
+
+<style>
+    .page-title {
+        font-size: 28px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .form-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+
+    .form-grid .full {
+        grid-column: span 2;
+    }
+
+    label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+    }
+
+    hr {
+        margin: 25px 0;
+        border: none;
+        border-bottom: 1px solid #ddd;
+    }
+</style>
+
+{% endblock %}

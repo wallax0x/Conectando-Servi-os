@@ -1,0 +1,199 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Meu Painel - Conectando Serviços{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos Customizados para o Dashboard */
+    .dashboard-container {
+        max-width: 1000px;
+        margin: 20px auto;
+    }
+    .request-card {
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .request-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+    .status-badge {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    .info-value {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    .description-box {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    .card-footer {
+        border-top: 1px solid #f0f0f0;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 15px;
+    }
+</style>
+
+<div class="container dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Minhas Solicitações</h2>
+        <a href="{{ url_for('search') }}" class="btn btn-primary rounded-pill px-4">
+            <i class="fas fa-plus me-2"></i>Nova Solicitação
+        </a>
+    </div>
+
+    {% if requests %}
+        <div class="row">
+            {% for req in requests %}
+            <div class="col-12 mb-4">
+                <div class="card request-card shadow-sm border-0">
+                    <!-- CABEÇALHO DO CARD -->
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h4 class="fw-bold mb-0 text-dark">{{ req.title or 'Serviço Sem Título' }}</h4>
+                        
+                        {# Badge de Status Dinâmico #}
+                        <span class="status-badge 
+                            {% if req.status == 'concluido' or req.status == 'completed' %} bg-success text-white
+                            {% elif req.status == 'aceito' %} bg-info text-white
+                            {% elif req.status == 'CANCELADO' %} bg-danger text-white
+                            {% else %} bg-warning text-dark {% endif %}">
+                            
+                            <i class="fas 
+                                {% if req.status == 'concluido' or req.status == 'completed' %} fa-check-circle
+                                {% elif req.status == 'aceito' %} fa-handshake
+                                {% elif req.status == 'CANCELADO' %} fa-ban
+                                {% else %} fa-clock {% endif %} me-1"></i>
+                            
+                            {% if req.status == 'pending' %}Pendente
+                            {% elif req.status == 'accepted' %}Aceito
+                            {% elif req.status == 'rejected' %}Recusado
+                            {% elif req.status == 'completed' or req.status == 'concluido' %}Concluído
+                            {% elif req.status == 'CANCELADO' %}Cancelado
+                            {% elif req.status == 'orcamento_enviado' %}Orçamento Recebido
+                            {% else %}{{ req.status | capitalize }}{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- CORPO DO CARD -->
+                    <div class="card-body px-4 pb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <span class="info-label"><i class="fas fa-user-tie text-primary me-2"></i>Profissional:</span><br>
+                                    <a href="{{ url_for('professional_profile', professional_id=req.professional.id) }}" class="text-decoration-none fw-bold">
+                                        {{ req.professional.user.name }}
+                                    </a>
+                                </p>
+                                <p class="mb-2">
+                                    <span class="info-label"><i class="fas fa-tag text-primary me-2"></i>Categoria:</span><br>
+                                    <span class="info-value">{{ req.professional.category.name }}</span>
+                                </p>
+                                {% if req.preferred_date %}
+                                <p class="mb-0">
+                                    <span class="info-label"><i class="fas fa-calendar-alt text-primary me-2"></i>Data Preferencial:</span><br>
+                                    <span class="info-value">{{ req.preferred_date }}</span>
+                                </p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 border-start d-none d-md-block">
+                                <p class="mb-2">
+                                    <span class="info-label"><i class="fas fa-money-bill-wave text-success me-2"></i>Orçamento:</span><br>
+                                    <span class="info-value">
+                                        {% if req.final_price %}
+                                            <strong>R$ {{ "%.2f"|format(req.final_price) }} (Acordado)</strong>
+                                        {% elif req.budget %}
+                                            R$ {{ "%.2f"|format(req.budget | default(0)) }}
+                                        {% else %}
+                                            A combinar
+                                        {% endif %}
+                                    </span>
+                                </p>
+                                <p class="mb-0">
+                                    <span class="info-label"><i class="fas fa-history text-muted me-2"></i>Enviado em:</span><br>
+                                    <span class="info-value small">{{ req.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                                </p>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="description-box mt-2">
+                                    <span class="info-label mb-1 d-block text-dark">Descrição:</span>
+                                    <p class="mb-0 info-value fst-italic">"{{ req.description }}"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RODAPÉ DO CARD / AÇÕES -->
+                    <div class="card-footer bg-white p-3 d-flex flex-wrap justify-content-end gap-2 border-0">
+                        {% if req.status != 'CANCELADO' %}
+                            
+                            {# Botão do Chat - Visível em todos os estados não cancelados #}
+                            <a href="{{ url_for('chat', request_id=req.id) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
+                                <i class="fas fa-comments me-1"></i> Abrir Chat
+                            </a>
+
+                            {# Botão de Cancelar - Apenas em estados iniciais #}
+                            {% if req.status in ['pending', 'pendente', 'orcamento_enviado'] %}
+                            <form action="{{ url_for('cancelar_pedido', request_id=req.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar esta solicitação?');">
+                                <button type="submit" class="btn btn-outline-danger rounded-pill px-3 btn-sm">
+                                    <i class="fas fa-ban me-1"></i> Cancelar
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {# Botão de Avaliar - Apenas quando concluído e sem review #}
+                            {% if req.status == 'concluido' or req.status == 'completed' %}
+                                {% if req.review %}
+                                    <button class="btn btn-success rounded-pill px-3 btn-sm disabled">
+                                        <i class="fas fa-check-circle me-1"></i> ✅ Avaliado
+                                    </button>
+                                {% else %}
+                                    <a href="{{ url_for('avaliar_servico', request_id=req.id) }}" class="btn btn-primary rounded-pill px-3 btn-sm">
+                                        <i class="fas fa-star me-1"></i> Avaliar Profissional
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+
+                        {% else %}
+                            {# Badge visual para pedidos cancelados #}
+                            <div class="mt-1">
+                                <span class="badge bg-danger rounded-pill py-2 px-3">Pedido Cancelado em {{ req.updated_at.strftime('%d/%m/%Y') if req.updated_at else '' }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="empty-state shadow-sm">
+            <div class="mb-4">
+                <i class="fas fa-inbox fa-4x text-muted opacity-25"></i>
+            </div>
+            <h3 class="fw-bold">Nenhuma solicitação ainda</h3>
+            <p class="text-muted">Você ainda não enviou nenhum pedido de orçamento. Que tal começar agora?</p>
+            <a href="{{ url_for('search') }}" class="btn btn-primary rounded-pill px-5 mt-3">
+                Explorar Profissionais
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

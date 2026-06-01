@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Editar Categoria</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <!-- CORRIGIDO: adicionando enctype -->
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('editar_categoria', id=categoria.id) }}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nome da Categoria</label>
+                    <input value="{{ categoria.name }}" type="text" name="name" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Descrição</label>
+                    <textarea name="description" class="form-control" required>{{ categoria.description }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nova imagem (opcional)</label>
+                    <input type="file" name="Imagem" class="form-control">
+                </div>
+
+                <button class="btn btn-primary">Salvar alterações</button>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

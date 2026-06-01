@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ professional.user.name }} - ServiçosPro{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="profile-layout">
+            <div class="profile-main">
+                <div class="profile-header">
+                    <div class="prof-photo-large">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h1>{{ professional.user.name }}</h1>
+                        <h1>
+                            Ver Perfil de Profissional - Solicitaçãp
+                        </h1>
+                        <p class="category-badge"><i class="fas fa-briefcase"></i> {{ professional.category.name }}</p>
+
+                        <div class="rating">
+                            {% for i in range(5) %}
+                            {% if i < professional.average_rating %} <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                                {% endfor %}
+                                <span>{{ "%.1f"|format(professional.average_rating) }} ({{ professional.review_count }}
+                                    avaliações)</span>
+                        </div>
+
+                        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ professional.user.city }}, {{
+                            professional.user.state }}</p>
+
+                        {% if professional.verified %}
+                        <span class="badge-verified"><i class="fas fa-check-circle"></i> CPF Verificado</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if professional.bio %}
+                <div class="profile-section">
+                    <h2>Sobre</h2>
+                    <p>{{ professional.bio }}</p>
+                </div>
+                {% endif %}
+
+                {% if professional.experience_years %}
+                <div class="profile-section">
+                    <h2>Experiência</h2>
+                    <p><i class="fas fa-calendar"></i> {{ professional.experience_years }} anos de experiência</p>
+                </div>
+                {% endif %}
+
+                <div class="profile-section">
+                    <h2>Avaliações</h2>
+                    {% if reviews %}
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-card">
+                            <div class="review-header">
+                                <strong>{{ review.client.name }}</strong>
+                                <div class="rating">
+                                    {% for i in range(5) %}
+                                    {% if i < review.rating %} <i class="fas fa-star"></i>
+                                        {% else %}
+                                        <i class="far fa-star"></i>
+                                        {% endif %}
+                                        {% endfor %}
+                                </div>
+                            </div>
+                            {% if review.comment %}
+                            <p>{{ review.comment }}</p>
+                            {% endif %}
+                            <small class="text-muted">{{ review.created_at.strftime('%d/%m/%Y') }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Ainda não há avaliações</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-sidebar">
+                <div class="sidebar-card">
+                    {% if professional.starting_price %}
+                    <div class="price-box">
+                        <p class="price-label">A partir de</p>
+                        <p class="price-value">R$ {{ "%.2f"|format(professional.starting_price) }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if professional.response_time %}
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Responde em {{ professional.response_time }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if current_user.is_authenticated and current_user.user_type == 'client' %}
+                    <a href="{{ url_for('request_service', professional_id=professional.id) }}"
+                        class="btn-primary btn-block">
+                        <i class="fas fa-paper-plane"></i> Solicitar Orçamento
+                    </a>
+                    <a href="{{ url_for('review_professional', professional_id=professional.id) }}"
+                        class="btn-secondary btn-block">
+                        <i class="fas fa-star"></i> Avaliar
+                    </a>
+                    {% elif not current_user.is_authenticated %}
+                    <a href="{{ url_for('login') }}" class="btn-primary btn-block">
+                        Entrar para Solicitar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

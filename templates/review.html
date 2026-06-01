@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Avaliar Serviço - Conectando Serviços{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                    <div class="card-header bg-white p-4 border-0 text-center">
+                        <h2 class="fw-bold text-primary mb-1">Como foi o serviço?</h2>
+                        <p class="text-muted small">Sua avaliação ajuda outros clientes a escolherem bons profissionais.</p>
+                    </div>
+                    
+                    <div class="card-body px-4 pb-4">
+                        <div class="alert alert-light border mb-4">
+                            <h6 class="mb-1 fw-bold">Serviço: {{ service_request.title }}</h6>
+                            <p class="mb-0 text-muted small">Profissional: {{ service_request.professional.user.name }}</p>
+                        </div>
+
+                        <form action="{{ url_for('avaliar_servico', request_id=service_request.id) }}" method="POST">
+                            <div class="form-group mb-4">
+                                <label for="rating" class="form-label fw-bold">Sua nota:</label>
+                                <select name="rating" id="rating" class="form-select form-select-lg" required>
+                                    <option value="" disabled selected>Selecione de 1 a 5 estrelas</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
+                                    <option value="4">⭐⭐⭐⭐ (Muito Bom)</option>
+                                    <option value="3">⭐⭐⭐ (Bom)</option>
+                                    <option value="2">⭐⭐ (Regular)</option>
+                                    <option value="1">⭐ (Ruim)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label for="comment" class="form-label fw-bold">Seu comentário:</label>
+                                <textarea name="comment" id="comment" rows="4" class="form-control" 
+                                          placeholder="O que você achou do trabalho? (Lembre-se: não é permitido compartilhar dados de contato aqui)" 
+                                          required></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold py-3">
+                                    Enviar Avaliação
+                                </button>
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-link text-muted mt-2">
+                                    Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .form-select-lg { font-size: 1rem; border-radius: 10px; }
+    .form-control { border-radius: 10px; }
+    .btn-lg { border-radius: 10px; }
+</style>
+{% endblock %}

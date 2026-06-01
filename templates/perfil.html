@@ -1,0 +1,92 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Perfil - Conectando Serviços{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card profile-card">
+                <h2 class="mb-3">Meu Perfil</h2>
+
+                <div class="profile-info mb-4">
+                    <div class="info-row"><strong>Nome:</strong> {{ current_user.name }}</div>
+                    <div class="info-row"><strong>Email:</strong> {{ current_user.email }}</div>
+                    <div class="info-row"><strong>CPF:</strong> {{ current_user.cpf }}</div>
+                    <div class="info-row"><strong>Telefone:</strong> {{ current_user.phone or '-' }}</div>
+                    <div class="info-row"><strong>Endereço:</strong> {{ current_user.address }}, {{
+                        current_user.neighborhood }} - {{ current_user.city }}/{{ current_user.state }}</div>
+                    <div class="info-row"><strong>CEP:</strong> {{ current_user.cep }}</div>
+                    <div class="info-row"><strong>Tipo de conta:</strong> {{ current_user.user_type|capitalize }}</div>
+                </div>
+
+                <hr>
+                
+                <div class="auth-footer mt-4 text-center">
+                    <a href="{{ url_for('dashboard') }}" class="btn-secondary">Voltar para o dashboard</a>
+                </div>
+
+                <div class="danger-zone mt-5 p-3 border border-danger rounded" style="background-color: #fff5f5;">
+                    <h5 class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Zona de Perigo</h5>
+                    <p class="text-muted small mb-3">Atenção: A exclusão da conta é permanente e apagará todo o seu histórico de serviços e mensagens.</p>
+                    <form method="POST" action="{{ url_for('excluir_proprio_usuario') }}"
+                        onsubmit="return confirm('Tem certeza que deseja excluir sua conta? Esta ação é irreversível e apagará todos os seus dados.')">
+                        <button type="submit" class="btn btn-danger w-100 py-2">
+                            Excluir Minha Conta Permanentemente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .profile-card {
+        max-width: 500px;
+        margin: auto;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-info .info-row {
+        padding: 8px 0;
+        font-size: 16px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .profile-info .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .btn-danger {
+        background-color: #e74c3c;
+        color: #fff;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .btn-danger:hover {
+        background-color: #c0392b;
+    }
+
+    .btn-secondary {
+        display: inline-block;
+        background-color: #bdc3c7;
+        color: #2c3e50;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #95a5a6;
+    }
+</style>
+{% endblock %}

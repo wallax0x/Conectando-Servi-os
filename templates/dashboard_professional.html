@@ -1,0 +1,105 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Dashboard - Conectando Serviços{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="page-title">Dashboard do Profissional</h1>
+        
+        <div class="dashboard-layout">
+            <div class="dashboard-sidebar">
+                <div class="profile-summary">
+                    <div class="prof-photo">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h3>{{ professional.user.name }}</h3>
+                    <p>{{ professional.category.name }}</p>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <strong>{{ professional.average_rating|round(1) }}</strong>
+                            <span>Avaliação</span>
+                        </div>
+                        <div class="stat-item">
+                            <strong>{{ professional.review_count }}</strong>
+                            <span>Avaliações</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('complete_professional_profile', professional_id=professional.id) }}" class="btn-secondary btn-block">
+                        Ver Meu Perfil
+                    </a>
+                    <a href="{{ url_for('perfil') }}" class="btn-secondary btn-block">
+                        Meu Perfil / Configurações
+                    </a>
+                    <form method="POST" action="{{ url_for('excluir_proprio_usuario') }}" onsubmit="return confirm('Tem certeza que deseja excluir sua conta? Esta ação é irreversível.')">
+                        <button type="submit" class="btn-danger btn-block mt-2">
+                            Excluir Conta
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="dashboard-main">
+                <h2>Solicitações Recebidas</h2>
+                
+                {% if requests %}
+                    <div class="requests-table">
+                        {% for req in requests %}
+                            <div class="request-card">
+                                <div class="request-header">
+                                    <h3>{{ req.title }}</h3>
+                                    <span class="status-badge status-{{ req.status }}">{{ req.status }}</span>
+                                </div>
+                                
+                                <p><strong>Cliente:</strong> {{ req.client.name }}</p>
+                                <p><strong>Descrição:</strong> {{ req.description }}</p>
+                                
+                                {% if req.budget %}
+                                    <p><strong>Orçamento:</strong> R$ {{ "%.2f"|format(req.budget) }}</p>
+                                {% endif %}
+                                
+                                {% if req.preferred_date %}
+                                    <p><strong>Data Preferencial:</strong> {{ req.preferred_date }}</p>
+                                {% endif %}
+                                
+                                <p class="text-muted"><small>Enviado em {{ req.created_at.strftime('%d/%m/%Y às %H:%M') }}</small></p>
+                                
+                                <div class="request-actions">
+                                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}" style="display: inline;">
+                                        <input type="hidden" name="status" value="accepted">
+                                        <button type="submit" class="btn-primary btn-sm" {% if req.status != 'pending' %}disabled{% endif %}>
+                                            <i class="fas fa-check"></i> Aceitar
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}" style="display: inline;">
+                                        <input type="hidden" name="status" value="rejected">
+                                        <button type="submit" class="btn-danger btn-sm" {% if req.status != 'pending' %}disabled{% endif %}>
+                                            <i class="fas fa-times"></i> Recusar
+                                        </button>
+                                    </form>
+                                    
+                                    <form method="POST" action="{{ url_for('update_request_status', request_id=req.id) }}" style="display: inline;">
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn-success btn-sm" {% if req.status != 'accepted' %}disabled{% endif %}>
+                                            <i class="fas fa-check-circle"></i> Concluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>Nenhuma solicitação ainda</h3>
+                        <p>Você receberá notificações quando clientes solicitarem seus serviços</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
