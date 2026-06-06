@@ -1,64 +1,103 @@
-{% extends 'admin/base.html' %}
-{% block title %} Listar Categoria {% endblock %}
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Categorias de Serviço{% endblock %}
+{% block header %}Gerenciamento de Categorias{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="h3">Categorias Cadastradas</h1>
+<div class="container-fluid pt-4">
+    <div class="card custom-card border-0 shadow">
+        
+        <div class="card-header custom-card-header d-flex align-items-center py-3">
+            <h3 class="card-title mb-0 fw-bold fs-5 text-white">
+                <i class="bi bi-tags-fill text-info me-2"></i>
+                Categorias de Serviço Cadastradas
+            </h3>
         </div>
-        <div class="col text-end">
-            <a href="{{url_for('adicionar_categoria')}}" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Nova Categoria
-            </a>
-        </div>
-    </div>
-
-    <div class="card">
-
+        
         <div class="card-body p-0">
-
-            <table class="table table-striped m-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Ativos</th>
-                        <th>Imagem</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for i in categorias %}
-
-                        <td>{{i.id}}</td>
-                        <td>{{i.name}}</td>
-                        <td>{{i['ativo']}}</td>
-                        <td><img src="data:image/jpeg;base64,{{i['imagem']}}" width="100px"></td>
-
-
-
-                        <span class="text-muted"></span>
-
-                        </td>
-
-                        <td>
-                            <a href="#" class="btn btn-sm btn-info">Detalhes</a>
-                            <a href="{{url_for('editar_categoria', id=i['id'])}}"
-                                class="btn btn-sm btn-warning">Editar</a>
-
-                            <form action="{{url_for('deletar_categoria', id=i['id'])}}" method="POST"
-                                style="display:inline;" onsubmit="return confirm('Deseja excluir a categoria?')">
-                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                            </form>
-
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table custom-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4 py-3" style="width: 120px;">ID</th>
+                            <th class="py-3">Nome da Categoria</th>
+                            <th class="pe-4 py-3 text-end" style="width: 200px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for categoria in categorias %}
+                        <tr>
+                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ categoria.id }}</td>
+                            
+                            <td>
+                                <span class="fw-bold text-white fs-6">{{ categoria.name }}</span>
+                            </td>
+                            
+                            <td class="pe-4 text-end">
+                                <a href="#" class="btn btn-sm btn-outline-info fw-bold me-1">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                                <a href="#" class="btn btn-sm btn-outline-danger fw-bold">
+                                    <i class="bi bi-trash-fill"></i> Excluir
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-white py-5">
+                                <i class="bi bi-tags text-muted display-5 d-block mb-3"></i>
+                                <span class="fs-5 fw-semibold">Nenhuma categoria encontrada.</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Moldura externa do cartão em preto/escuro sólido */
+    .custom-card {
+        background-color: #1a1d20 !important;
+        border: 1px solid #343a40 !important;
+        border-radius: 10px !important;
+    }
+
+    /* Topo do cartão com tonalidade ligeiramente diferenciada para profundidade */
+    .custom-card-header {
+        background-color: #2b3035 !important;
+        border-bottom: 1px solid #343a40 !important;
+    }
+
+    /* Cabeçalhos (th) - Fundo Preto Sólido, Letras Brancas Fortes e Borda Inferior Marcante */
+    .custom-table th {
+        color: #ffffff !important;
+        background-color: #1a1d20 !important;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 800;
+        border-bottom: 3px solid #495057 !important;
+    }
+
+    /* Linhas de dados (tr) - Mesma cor de fundo do cabeçalho th para simetria visual absoluta */
+    .custom-table tbody tr {
+        background-color: #1a1d20 !important; 
+        border-bottom: 1px solid #343a40 !important; /* Divisória horizontal nítida entre registros */
+    }
+
+    /* Células de dados (td) - Forçadas a adotarem o mesmo fundo escuro, texto branco e negrito dos th */
+    .custom-table tbody td {
+        background-color: #1a1d20 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important; 
+    }
+
+    /* Efeito Interativo (Hover): Realça suavemente a linha focada pelo mouse mantendo o tema escuro */
+    .custom-table tbody tr:hover {
+        background-color: #25292e !important;
+    }
+</style>
 {% endblock %}

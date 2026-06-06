@@ -1,0 +1,84 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Dashboard Administrativo{% endblock %}
+{% block header %}Painel de Controle{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row pt-3">
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-primary mb-4 p-3 rounded shadow-sm">
+                <div class="inner">
+                    <h3>{{ total_categorias }}</h3>
+                    <p>Categorias</p>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-tags-fill"></i>
+                </div>
+                <a href="{{ url_for('listar_categorias') }}" class="small-box-footer text-white text-decoration-none d-block mt-2">
+                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-success mb-4 p-3 rounded shadow-sm">
+                <div class="inner">
+                    <h3>{{ total_profissionais }}</h3>
+                    <p>Profissionais</p>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <a href="{{ url_for('listar_profissoes') }}" class="small-box-footer text-white text-decoration-none d-block mt-2">
+                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-warning mb-4 p-3 rounded shadow-sm">
+                <div class="inner text-dark">
+                    <h3>{{ total_usuarios }}</h3>
+                    <p>Usuários Totais</p>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-people-fill text-dark"></i>
+                </div>
+                <a href="{{ url_for('admin_listar_usuarios') }}" class="small-box-footer text-dark text-decoration-none d-block mt-2">
+                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box text-bg-danger mb-4 p-3 rounded shadow-sm">
+                <div class="inner">
+                    <h3>{{ total_pedidos }}</h3>
+                    <p>Solicitações</p>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+                <a href="#" class="small-box-footer text-white text-decoration-none d-block mt-2">
+                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .small-box { position: relative; overflow: hidden; }
+    .small-box .inner { position: relative; z-index: 5; }
+    .small-box .icon {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        z-index: 0;
+        font-size: 50px;
+        color: rgba(0,0,0,0.15);
+    }
+    .small-box:hover .icon { font-size: 55px; transition: 0.3s; }
+</style>
+{% endblock %}

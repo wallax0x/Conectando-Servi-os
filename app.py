@@ -62,10 +62,12 @@ def load_user(user_id):
 @app.context_processor
 def inject_notifications():
     if current_user.is_authenticated:
-        unread_notifications = current_user.notifications.filter_by(is_read=False).order_by(Notification.created_at.desc()).all()
+        unread_notifications = current_user.notifications.filter_by(
+            is_read=False).order_by(Notification.created_at.desc()).all()
         return dict(
             unread_notifications_count=len(unread_notifications),
-            recent_notifications=unread_notifications[:5] # Mostra as 5 mais recentes no dropdown
+            # Mostra as 5 mais recentes no dropdown
+            recent_notifications=unread_notifications[:5]
         )
     return dict(unread_notifications_count=0, recent_notifications=[])
 
@@ -80,6 +82,7 @@ def read_notification(notif_id):
         if notif.link:
             return redirect(notif.link)
     return redirect(url_for('dashboard'))
+
 
 # ---------- CPF validator ----------
 cpf_validator = CPF()
@@ -156,7 +159,6 @@ def index():
     professionals = Professional.query.order_by(
         Professional.created_at.desc()).limit(6).all()
     return render_template('index.html', categories=categories, professionals=professionals)
-
 
 
 # Não esqueça de importar a função de censura no topo do seu app.py
@@ -303,14 +305,17 @@ def search():
 # --------------------------
 # PERFIL DO PROFISSIONAL (PÚBLICO)
 # --------------------------
+
+
 @app.route('/profissional/<int:professional_id>')
 def professional_profile(professional_id):
     # Busca o profissional ou retorna 404 se não existir
     prof = Professional.query.get_or_404(professional_id)
-    
+
     # Busca as avaliações deste profissional para exibir no perfil
-    reviews = Review.query.filter_by(professional_id=prof.id).order_by(Review.created_at.desc()).all()
-    
+    reviews = Review.query.filter_by(professional_id=prof.id).order_by(
+        Review.created_at.desc()).all()
+
     return render_template('professional_profile.html', professional=prof, reviews=reviews)
 
 
@@ -318,7 +323,7 @@ def professional_profile(professional_id):
 @login_required
 def request_service(professional_id):
     prof = Professional.query.get_or_404(professional_id)
-    
+
     if request.method == 'POST':
         title = (request.form.get('title') or '').strip()
         description = (request.form.get('description') or '').strip()
@@ -344,11 +349,12 @@ def request_service(professional_id):
             status='pendente',
             created_at=datetime.utcnow()
         )
-        
+
         db.session.add(new_request)
         db.session.commit()
-        
-        flash('Solicitação enviada com sucesso! Aguarde o retorno do profissional.', 'success')
+
+        flash(
+            'Solicitação enviada com sucesso! Aguarde o retorno do profissional.', 'success')
         return redirect(url_for('dashboard'))
 
     return render_template('request_service.html', professional=prof)
@@ -358,16 +364,16 @@ def request_service(professional_id):
 @login_required
 def review_professional(professional_id):
     prof = Professional.query.get_or_404(professional_id)
-    
+
     if request.method == 'POST':
         rating = request.form.get('rating')
         comment = (request.form.get('comment') or '').strip()
-        
+
         # Aplicando a censura no comentário
         comment_seguro = censurar_dados(comment)
 
         last_request = ServiceRequest.query.filter_by(
-            client_id=current_user.id, 
+            client_id=current_user.id,
             professional_id=prof.id
         ).order_by(ServiceRequest.created_at.desc()).first()
 
@@ -379,10 +385,10 @@ def review_professional(professional_id):
             comment=comment_seguro,
             created_at=datetime.utcnow()
         )
-        
+
         db.session.add(new_review)
         db.session.commit()
-        
+
         flash('Obrigado pela sua avaliação!', 'success')
         return redirect(url_for('professional_profile', professional_id=prof.id))
 
@@ -468,13 +474,13 @@ def atualizar_status_pedido(pedido_id, novo_status):
     # Atualiza o status
     pedido.status = novo_status
     db.session.commit()
-    
+
     status_msg = {
         'aceito': 'Pedido aceito com sucesso!',
         'recusado': 'Pedido recusado.',
         'concluido': 'Serviço marcado como concluído!'
     }
-    
+
     flash(status_msg.get(novo_status, 'Status atualizado!'), 'success')
     return redirect(url_for('dashboard'))
 
@@ -483,12 +489,12 @@ def atualizar_status_pedido(pedido_id, novo_status):
 @login_required
 def chat(request_id):
     service_request = ServiceRequest.query.get_or_404(request_id)
-    
+
     # Segurança: Apenas o cliente ou o profissional do pedido podem acessar o chat
     is_client = current_user.id == service_request.client_id
     prof = Professional.query.filter_by(user_id=current_user.id).first()
     is_prof = prof and prof.id == service_request.professional_id
-    
+
     if not (is_client or is_prof):
         flash('Acesso negado ao chat.', 'danger')
         return redirect(url_for('dashboard'))
@@ -498,7 +504,7 @@ def chat(request_id):
         if content:
             # Aplica a censura antes de salvar
             content_seguro = censurar_dados(content)
-            
+
             new_message = Message(
                 request_id=service_request.id,
                 sender_id=current_user.id,
@@ -509,14 +515,16 @@ def chat(request_id):
             # Notificar a outra parte
             recipient_id = service_request.professional.user_id if is_client else service_request.client_id
             notification_msg = f"Nova mensagem de {current_user.name} no serviço '{service_request.title}'"
-            notif = Notification(user_id=recipient_id, message=notification_msg, link=url_for('chat', request_id=service_request.id))
+            notif = Notification(user_id=recipient_id, message=notification_msg, link=url_for(
+                'chat', request_id=service_request.id))
             db.session.add(notif)
 
             db.session.commit()
         return redirect(url_for('chat', request_id=request_id))
 
     # Busca mensagens ordenadas por tempo
-    messages = Message.query.filter_by(request_id=request_id).order_by(Message.timestamp.asc()).all()
+    messages = Message.query.filter_by(
+        request_id=request_id).order_by(Message.timestamp.asc()).all()
 
     return render_template('chat.html', service_request=service_request, messages=messages)
 
@@ -540,14 +548,15 @@ def enviar_orcamento(request_id):
 
             # Notificar o cliente
             notif_msg = f"Orçamento final de R$ {service_request.final_price:.2f} recebido no serviço '{service_request.title}'."
-            notif = Notification(user_id=service_request.client_id, message=notif_msg, link=url_for('chat', request_id=service_request.id))
+            notif = Notification(user_id=service_request.client_id, message=notif_msg, link=url_for(
+                'chat', request_id=service_request.id))
             db.session.add(notif)
 
             db.session.commit()
             flash('Orçamento final enviado com sucesso!', 'success')
         except ValueError:
             flash('Valor numérico inválido.', 'danger')
-            
+
     return redirect(url_for('chat', request_id=request_id))
 
 
@@ -555,7 +564,7 @@ def enviar_orcamento(request_id):
 @login_required
 def responder_orcamento(request_id):
     service_request = ServiceRequest.query.get_or_404(request_id)
-    
+
     # Validação de segurança: apenas o cliente do pedido pode responder
     if current_user.id != service_request.client_id:
         flash('Acesso negado. Apenas o cliente pode aceitar o orçamento.', 'danger')
@@ -568,7 +577,7 @@ def responder_orcamento(request_id):
     elif acao == 'recusar':
         service_request.status = 'recusado'
         flash('Orçamento recusado.', 'info')
-        
+
     db.session.commit()
     return redirect(url_for('chat', request_id=request_id))
 
@@ -585,7 +594,8 @@ def cancelar_pedido(request_id):
 
     # Trava de Status: Não pode cancelar se já foi aceito ou concluído
     if service_request.status in ['aceito', 'concluido']:
-        flash('Não é possível cancelar um pedido que já foi aceito ou concluído.', 'warning')
+        flash(
+            'Não é possível cancelar um pedido que já foi aceito ou concluído.', 'warning')
         return redirect(url_for('dashboard'))
 
     service_request.status = 'CANCELADO'
@@ -756,12 +766,33 @@ def admin():
 
         if login == 'admin' and senha == 'senha123':
             session['usuario'] = True
-            return render_template('admin/base.html')
+            # Redireciona para a rota do dashboard que criamos abaixo
+            return redirect(url_for('admin_dashboard'))
         else:
             menssagem = 'Usuario ou senha incorretos.'
             return render_template('admin/login_admin.html', menssagem=menssagem)
 
     return render_template('admin/login_admin.html', menssagem=menssagem)
+
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    # Proteção: impede que entrem na página direto sem logar
+    if not session.get('usuario'):
+        return redirect(url_for('admin'))
+
+    # Puxa os dados reais do seu banco de dados para os 4 cartões informativos
+    total_categorias = ServiceCategory.query.count()
+    total_profissionais = Professional.query.count()
+    total_usuarios = User.query.count()
+    total_pedidos = ServiceRequest.query.count()
+
+    # Renderiza o arquivo que criamos estendendo a sua base_dashboard.html
+    return render_template('admin/dashboard.html',
+                           total_categorias=total_categorias,
+                           total_profissionais=total_profissionais,
+                           total_usuarios=total_usuarios,
+                           total_pedidos=total_pedidos)
 
 
 @app.route('/logout_admin')
@@ -771,6 +802,21 @@ def logout_admin():
         return redirect(url_for('admin'))
     else:
         return redirect(url_for('admin'))
+    
+
+
+
+@app.route('/admin/usuarios/listar')
+def admin_listar_usuarios():
+    # Garantir proteção para que apenas o admin aceda
+    if not session.get('usuario'):
+        flash('Acesso restrito ao administrador.', 'danger')
+        return redirect(url_for('admin'))
+
+    # Procura todos os utilizadores registados no sistema
+    usuarios = User.query.order_by(User.name).all()
+
+    return render_template('admin/usuarios/listar.html', usuarios=usuarios)
 
 
 @app.route('/admin/categorias/listar')
@@ -861,6 +907,18 @@ def deletar_categoria(id):
     flash('Categoria removida.', 'success')
     return redirect(url_for('listar_categorias'))
 
+
+@app.route('/admin/solicitacoes')
+def admin_listar_solicitacoes():
+    # Garante segurança para que apenas o administrador logado acesse
+    if not session.get('usuario'):
+        return redirect(url_for('admin'))
+        
+    # Busca todas as solicitações ordenando pelas mais recentes
+    # Nota: Adapte o nome do modelo (ex: ServiceRequest ou Solicitacao) conforme o seu banco
+    solicitacoes = ServiceRequest.query.order_by(ServiceRequest.id.desc()).all()
+    
+    return render_template('admin/solicitacoes/listar.html', solicitacoes=solicitacoes)
 # --------------------------
 # PROFISSÕES CRUD
 # --------------------------
@@ -868,8 +926,13 @@ def deletar_categoria(id):
 
 @app.route('/admin/profissoes')
 def listar_profissoes():
-    profs = Professional.query.order_by(Professional.created_at.desc()).all()
-    return render_template('admin/profissoes/listar.html', profissoes=profs)
+    # Garante que apenas o admin acessa a listagem geral
+    if not session.get('usuario'):
+        return redirect(url_for('admin'))
+        
+    # Busca todos os profissionais trazendo junto os usuários e categorias vinculados (Evita o bug de lista vazia)
+    profs = Professional.query.order_by(Professional.id.desc()).all()
+    return render_template('admin/profissoes/listar.html', profissionais=profs)
 
 
 @app.route('/admin/profissoes/criar', methods=['GET', 'POST'])
@@ -877,64 +940,68 @@ def adicionar_profissao():
     categories = ServiceCategory.query.order_by(ServiceCategory.name).all()
     if request.method == 'POST':
         try:
-            category_id = int(request.form.get('category_id')
-                              ) if request.form.get('category_id') else None
+            category_id = int(request.form.get('category_id')) if request.form.get('category_id') else None
         except ValueError:
             category_id = None
+            
         prof = Professional(
             user_id=current_user.id,
             category_id=category_id,
             bio=censurar_dados((request.form.get('bio') or '').strip()),
-            experience_years=int(request.form.get('experience_years')) if request.form.get(
-                'experience_years') else None,
-            starting_price=float(request.form.get('starting_price')) if request.form.get(
-                'starting_price') else None,
+            experience_years=int(request.form.get('experience_years')) if request.form.get('experience_years') else None,
+            starting_price=float(request.form.get('starting_price')) if request.form.get('starting_price') else None,
             response_time=request.form.get('response_time') or '24 horas',
             created_at=datetime.utcnow()
         )
         db.session.add(prof)
         db.session.commit()
         flash('Perfil profissional criado!', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('admin_dashboard')) # Redireciona para o seu novo dashboard admin
+        
     return render_template('admin/profissoes/criar.html', categories=categories)
 
 
 @app.route('/admin/profissoes/editar/<int:id>', methods=['GET', 'POST'])
 def editar_profissao(id):
     prof = Professional.query.get_or_404(id)
-    if prof.user_id != current_user.id:
+    
+    # Permite que o próprio usuário OU o Administrador edite o perfil
+    if prof.user_id != current_user.id and not session.get('usuario'):
         flash('Acesso negado.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('admin_dashboard'))
+        
     categories = ServiceCategory.query.order_by(ServiceCategory.name).all()
     if request.method == 'POST':
-        prof.category_id = int(request.form.get(
-            'category_id')) if request.form.get('category_id') else None
+        prof.category_id = int(request.form.get('category_id')) if request.form.get('category_id') else None
         prof.bio = censurar_dados((request.form.get('bio') or prof.bio).strip())
-        prof.experience_years = int(request.form.get(
-            'experience_years')) if request.form.get('experience_years') else None
-        prof.starting_price = float(request.form.get(
-            'starting_price')) if request.form.get('starting_price') else None
-        prof.response_time = request.form.get(
-            'response_time') or prof.response_time
+        prof.experience_years = int(request.form.get('experience_years')) if request.form.get('experience_years') else None
+        prof.starting_price = float(request.form.get('starting_price')) if request.form.get('starting_price') else None
+        prof.response_time = request.form.get('response_time') or prof.response_time
+        
         db.session.commit()
         flash('Perfil atualizado.', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('listar_profissoes'))
+        
     return render_template('admin/profissoes/editar.html', prof=prof, categories=categories)
 
 
 @app.route('/admin/profissoes/excluir/<int:id>', methods=['POST'])
 def deletar_profissao(id):
     prof = Professional.query.get_or_404(id)
-    if prof.user_id != current_user.id:
+    
+    # Permite que o próprio usuário OU o Administrador delete o perfil
+    if prof.user_id != current_user.id and not session.get('usuario'):
         flash('Acesso negado.', 'danger')
         return redirect(url_for('listar_profissoes'))
-    # Remove reviews associados ao profissional
-    Review.query.filter_by(professional_id=prof.id).delete(
-        synchronize_session=False)
+        
+    # Remove reviews associados ao profissional para não quebrar a integridade do banco
+    Review.query.filter_by(professional_id=prof.id).delete(synchronize_session=False)
+    
     db.session.delete(prof)
     db.session.commit()
     flash('Perfil profissional excluído.', 'success')
-    return redirect(url_for('admin/profissoes/excluir.html'))
+    # CORRIGIDO: Agora redireciona usando o nome correto da função Python
+    return redirect(url_for('listar_profissoes'))
 
 # --------------------------
 # EDITAR PERFIL DO USUÁRIO
@@ -978,4 +1045,3 @@ if __name__ == '__main__':
         # create_app_admin_if_missing()
 
     app.run(debug=True)
-

@@ -1,7 +1,7 @@
 {% extends 'base_dashboard.html' %}
 
-{% block title %}Profissionais Ativos{% endblock %}
-{% block header %}Gerenciamento de Profissionais{% endblock %}
+{% block title %}Clientes e Utilizadores{% endblock %}
+{% block header %}Gerenciamento de Utilizadores{% endblock %}
 
 {% block content %}
 <div class="container-fluid pt-4">
@@ -9,8 +9,8 @@
         
         <div class="card-header custom-card-header d-flex align-items-center py-3">
             <h3 class="card-title mb-0 fw-bold fs-5 text-white">
-                <i class="bi bi-briefcase-fill text-info me-2"></i>
-                Lista de Profissionais Cadastrados
+                <i class="bi bi-people-fill text-info me-2"></i>
+                Lista de Utilizadores do Sistema
             </h3>
         </div>
         
@@ -20,55 +20,52 @@
                     <thead>
                         <tr>
                             <th class="ps-4 py-3">ID</th>
-                            <th class="py-3">Nome do Profissional</th>
+                            <th class="py-3">Nome Completo</th>
                             <th class="py-3">E-mail</th>
-                            <th class="py-3">Especialidade / Categoria</th>
-                            <th class="pe-4 py-3 text-end" style="width: 180px;">Status</th>
+                            <th class="py-3">Telefone</th>
+                            <th class="pe-4 py-3 text-end" style="width: 180px;">Tipo de Conta</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for profissional in profissionais %}
+                        {% for usuario in usuarios %}
                         <tr>
-                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ profissional.id }}</td>
+                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ usuario.id }}</td>
                             
                             <td>
-                                <span class="fw-bold text-white fs-6">
-                                    {% if profissional.user %}
-                                        {{ profissional.user.name }}
-                                    {% else %}
-                                        Profissional Sem Nome (ID do User: {{ profissional.user_id }})
-                                    {% endif %}
-                                </span>
+                                <span class="fw-bold text-white fs-6">{{ usuario.name }}</span>
                             </td>
                             
-                            <td class="text-white fw-bold">
-                                {% if profissional.user %}
-                                    {{ profissional.user.email }}
-                                {% else %}
-                                    <span class="text-danger fw-normal fst-italic">Vínculo de usuário ausente</span>
-                                {% endif %}
-                            </td>
+                            <td class="text-white fw-bold">{{ usuario.email }}</td>
                             
                             <td class="text-white fw-bold">
-                                <span class="text-info"><i class="bi bi-tag-fill me-1"></i></span>
-                                {% if profissional.category %}
-                                    {{ profissional.category.name }}
+                                {% if usuario.phone %}
+                                    <i class="bi bi-telephone-fill text-info small me-1"></i> {{ usuario.phone }}
                                 {% else %}
-                                    <span class="text-muted fw-normal fst-italic">Não Definida (ID Cat: {{ profissional.service_category_id }})</span>
+                                    <span class="text-muted small fst-italic fw-normal">Não informado</span>
                                 {% endif %}
                             </td>
                             
                             <td class="pe-4 text-end">
+                                {% if usuario.user_type == 'professional' %}
                                 <span class="badge badge-custom bg-success text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Ativo
+                                    <i class="bi bi-briefcase-fill me-1"></i> Profissional
                                 </span>
+                                {% elif usuario.user_type == 'admin' %}
+                                <span class="badge badge-custom bg-danger text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
+                                    <i class="bi bi-shield-lock-fill me-1"></i> Admin
+                                </span>
+                                {% else %}
+                                <span class="badge badge-custom bg-warning text-dark px-3 py-2 rounded-pill fw-bold border border-dark border-opacity-10">
+                                    <i class="bi bi-person-fill me-1"></i> Cliente
+                                </span>
+                                {% endif %}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
                             <td colspan="5" class="text-center text-white py-5">
-                                <i class="bi bi-briefcase text-muted display-5 d-block mb-3"></i>
-                                <span class="fs-5 fw-semibold">Nenhum profissional encontrado.</span>
+                                <i class="bi bi-people text-muted display-5 d-block mb-3"></i>
+                                <span class="fs-5 fw-semibold">Nenhum utilizador encontrado.</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -107,7 +104,7 @@
     /* Linhas de dados (tr) - Mesma cor de fundo do cabeçalho th para simetria visual absoluta */
     .custom-table tbody tr {
         background-color: #1a1d20 !important; 
-        border-bottom: 1px solid #343a40 !important;
+        border-bottom: 1px solid #343a40 !important; /* Divisória horizontal nítida entre registros */
     }
 
     /* Células de dados (td) - Forçadas a adotarem o mesmo fundo escuro, texto branco e negrito dos th */
@@ -122,7 +119,7 @@
         background-color: #25292e !important;
     }
 
-    /* Estilo customizado com sombra e espaçamento do Badge de Status */
+    /* Estilo customizado com sombra e espaçamento dos Badges identificadores de conta */
     .badge-custom {
         font-size: 0.8rem !important;
         font-weight: 700 !important;
