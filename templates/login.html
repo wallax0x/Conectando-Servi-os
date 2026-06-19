@@ -2,6 +2,10 @@
 
 {% block title %}Entrar - Conectando Serviços{% endblock %}
 
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
 {% block content %}
 <section class="section">
     <div class="container">
@@ -19,6 +23,12 @@
                     <div class="form-group">
                         <label for="password">Senha</label>
                         <input type="password" id="password" name="password" required class="form-input">
+                    </div>
+
+                    <div class="flex justify-end mt-1 mb-4">
+                        <a href="{{ url_for('recuperar_senha') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                            Esqueceu a senha?
+                        </a>
                     </div>
                     
                     <button type="submit" class="btn-primary btn-block">Entrar</button>

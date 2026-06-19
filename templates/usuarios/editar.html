@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações de Perfil - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Configurações de Perfil</h1>
+                <p class="text-gray-500 mt-1">Gerencie suas informações pessoais, profissionais e segurança.</p>
+            </div>
+            <a href="{{ url_for('perfil') }}" class="text-blue-600 font-semibold hover:underline flex items-center gap-2">
+                <i class="fas fa-eye"></i> Visualizar Perfil
+            </a>
+        </div>
+
+        <!-- FORMULÁRIO PRINCIPAL -->
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            <input type="hidden" name="form_type" value="profile_info">
+            
+            <!-- Foto de Perfil -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center gap-8">
+                <div class="relative group">
+                    <div class="w-32 h-32 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-4xl font-bold overflow-hidden border-4 border-white shadow-md">
+                        {% if user.profile_image %}
+                            <img src="{{ user.profile_image }}" class="w-full h-full object-cover">
+                        {% else %}
+                            {{ user.name[0] | upper }}
+                        {% endif %}
+                    </div>
+                    <label for="profile_photo" class="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-xl cursor-pointer shadow-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-camera"></i>
+                        <input type="file" id="profile_photo" name="profile_photo" class="hidden" accept="image/*">
+                    </label>
+                </div>
+                <div class="text-center md:text-left">
+                    <h3 class="text-xl font-bold text-gray-900">Sua Foto</h3>
+                    <p class="text-gray-500 text-sm mt-1">Clique no ícone da câmera para alterar sua foto de perfil.<br>Formatos aceitos: JPG, PNG ou WEBP.</p>
+                </div>
+            </div>
+
+            <!-- DADOS PESSOAIS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-user text-blue-600"></i> Informações Pessoais
+                    </h3>
+                </div>
+                
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Nome Completo</label>
+                        <input type="text" name="name" value="{{ user.name }}" required 
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">E-mail</label>
+                        <input type="email" name="email" value="{{ user.email }}" required
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Telefone</label>
+                        <input type="text" name="phone" value="{{ user.phone or '' }}"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">CEP</label>
+                        <input type="text" name="cep" value="{{ user.cep or '' }}"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Endereço Completo</label>
+                        <input type="text" name="address" value="{{ user.address or '' }}"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Bairro</label>
+                        <input type="text" name="neighborhood" value="{{ user.neighborhood or '' }}"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Cidade</label>
+                            <input type="text" name="city" value="{{ user.city or '' }}"
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Estado (UF)</label>
+                            <input type="text" name="state" value="{{ user.state or '' }}" maxlength="2"
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none uppercase text-center">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if prof %}
+            <!-- DADOS DO PROFISSIONAL -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-briefcase text-blue-600"></i> Perfil Profissional
+                    </h3>
+                </div>
+                
+                <div class="p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Categoria Principal</label>
+                            <select name="category_id" required
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none bg-white">
+                                {% for c in categories %}
+                                <option value="{{ c.id }}" {% if prof.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Anos de Experiência</label>
+                            <input type="number" name="experience_years" value="{{ prof.experience_years or 0 }}"
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Preço Inicial (R$)</label>
+                            <input type="number" step="0.01" name="starting_price" value="{{ prof.starting_price or 0 }}"
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Tempo Médio de Resposta</label>
+                            <input type="text" name="response_time" value="{{ prof.response_time or '' }}"
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Descrição da sua experiência (Biografia)</label>
+                        <textarea name="bio" rows="5"
+                            placeholder="Conte um pouco sobre sua trajetória, há quanto tempo atua na área e seus diferenciais..."
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none resize-none">{{ prof.bio or '' }}</textarea>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Especialidades (separe por vírgula)</label>
+                        <input type="text" name="tags" value="{{ prof.tags or '' }}" placeholder="Ex: Pintura, Alvenaria, Manutenção..."
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Dias de Atendimento</label>
+                            <select name="availability" required
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none bg-white">
+                                <option value="Segunda a Sexta" {% if prof.availability == 'Segunda a Sexta' %}selected{% endif %}>Segunda a Sexta</option>
+                                <option value="Finais de Semana" {% if prof.availability == 'Finais de Semana' %}selected{% endif %}>Finais de Semana</option>
+                                <option value="Todos os dias" {% if prof.availability == 'Todos os dias' %}selected{% endif %}>Todos os dias</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Onde você atende?</label>
+                            <input type="text" name="service_range" value="{{ prof.service_range or '' }}" placeholder="Ex: Apenas Garanhuns, Todo o Estado..."
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Portfólio de Fotos -->
+                    <div class="pt-6 border-t border-gray-50">
+                        <label class="block text-sm font-semibold text-gray-700 px-1 mb-4">Portfólio de Trabalhos (Máx. 6 fotos)</label>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                            {% for photo in prof.get_portfolio_photos() %}
+                            <div class="relative group aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition">
+                                <img src="{{ photo }}" class="w-full h-full object-cover">
+                                <form action="{{ url_for('remover_foto_portfolio', photo_index=loop.index0) }}" method="POST"
+                                    class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                    <button type="submit" class="bg-red-600 text-white p-2 rounded-xl hover:bg-red-700 transition">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if prof.get_portfolio_photos()|length < 6 %}
+                            <label for="portfolio_upload" class="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition text-gray-400 hover:text-blue-500">
+                                <i class="fas fa-plus text-2xl"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">Adicionar Foto</span>
+                                <input type="file" id="portfolio_upload" name="portfolio_photos" class="hidden" accept="image/*" multiple>
+                            </label>
+                            {% endif %}
+                        </div>
+                        <p class="text-[10px] text-gray-400 italic">Dica: Mostre fotos reais do seu trabalho para passar mais confiança aos clientes.</p>
+                    </div>
+                </div>
+            </div>
+{% endif %}
+
+            <div class="flex flex-col md:flex-row gap-4">
+                <button type="submit" 
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-200 transition duration-300">
+                    Salvar Alterações
+                </button>
+                <a href="{{ url_for('dashboard') }}" 
+                    class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-bold py-4 px-8 rounded-2xl border border-gray-200 transition duration-300 text-center">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+
+        <!-- SEÇÃO DE SEGURANÇA (SENHA) -->
+        <div class="mt-12 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-lock text-blue-600"></i> Segurança
+                </h3>
+            </div>
+            <form method="POST" class="p-8">
+                <input type="hidden" name="form_type" value="security">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Senha Atual</label>
+                        <input type="password" name="current_password" required
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Nova Senha</label>
+                        <input type="password" name="new_password" required
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Confirmar Nova Senha</label>
+                        <input type="password" name="confirm_password" required
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-2xl transition duration-300 shadow-md">
+                    Atualizar Senha
+                </button>
+            </form>
+        </div>
+
+        <!-- ZONA DE PERIGO -->
+        <div class="mt-12 bg-red-50 rounded-3xl border border-red-100 overflow-hidden">
+            <div class="p-8">
+                <div class="flex items-center gap-3 text-red-600 mb-4">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <h3 class="text-lg font-bold">Zona de Perigo</h3>
+                </div>
+                <p class="text-red-700/70 text-sm mb-6 leading-relaxed">
+                    A exclusão da conta é permanente e você perderá todo o seu histórico de solicitações e mensagens. Tenha certeza antes de prosseguir.
+                </p>
+                <button type="button" onclick="openModal()" 
+                    class="bg-white hover:bg-red-50 text-red-600 border border-red-200 font-bold py-3 px-8 rounded-2xl transition duration-300">
+                    Excluir Minha Conta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO -->
+<div id="deleteModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal()"></div>
+
+        <!-- Modal Panel -->
+        <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">Confirmar Exclusão</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 leading-relaxed">
+                                Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita e você perderá todo o histórico de solicitações e interações.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <form action="{{ url_for('excluir_proprio_usuario') }}" method="POST">
+                    <button type="submit" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none sm:text-sm">
+                        Sim, excluir conta
+                    </button>
+                </form>
+                <button type="button" onclick="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:text-sm">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+</script>
+{% endblock %}

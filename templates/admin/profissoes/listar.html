@@ -1,74 +1,66 @@
 {% extends 'base_dashboard.html' %}
 
-{% block title %}Profissionais Ativos{% endblock %}
-{% block header %}Gerenciamento de Profissionais{% endblock %}
+{% block title %}Gerenciar Profissionais{% endblock %}
+{% block header %}Profissionais do Sistema{% endblock %}
 
 {% block content %}
 <div class="container-fluid pt-4">
-    <div class="card custom-card border-0 shadow">
-        
-        <div class="card-header custom-card-header d-flex align-items-center py-3">
-            <h3 class="card-title mb-0 fw-bold fs-5 text-white">
-                <i class="bi bi-briefcase-fill text-info me-2"></i>
-                Lista de Profissionais Cadastrados
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 px-4 border-bottom-0">
+            <h3 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-briefcase-fill text-primary me-2"></i>
+                Lista de Profissionais
             </h3>
         </div>
-        
+
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table custom-table mb-0 align-middle">
-                    <thead>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th class="ps-4 py-3">ID</th>
-                            <th class="py-3">Nome do Profissional</th>
-                            <th class="py-3">E-mail</th>
-                            <th class="py-3">Especialidade / Categoria</th>
-                            <th class="pe-4 py-3 text-end" style="width: 180px;">Status</th>
+                            <th class="ps-4 py-3 text-muted small text-uppercase fw-bold">ID</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold">Nome</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold">Categoria</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold text-center">Status</th>
+                            <th class="pe-4 py-3 text-muted small text-uppercase fw-bold text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for profissional in profissionais %}
                         <tr>
-                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ profissional.id }}</td>
-                            
+                            <td class="ps-4 small text-muted">#{{ profissional.id }}</td>
                             <td>
-                                <span class="fw-bold text-white fs-6">
-                                    {% if profissional.user %}
-                                        {{ profissional.user.name }}
-                                    {% else %}
-                                        Profissional Sem Nome (ID do User: {{ profissional.user_id }})
-                                    {% endif %}
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold text-dark">{{ profissional.user.name if profissional.user else 'Sem nome' }}</span>
+                                    <span class="small text-muted">{{ profissional.user.email if profissional.user else '' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-primary border border-primary border-opacity-10 px-2 py-1">
+                                    {{ profissional.category.name if profissional.category else 'Não definida' }}
                                 </span>
                             </td>
-                            
-                            <td class="text-white fw-bold">
-                                {% if profissional.user %}
-                                    {{ profissional.user.email }}
-                                {% else %}
-                                    <span class="text-danger fw-normal fst-italic">Vínculo de usuário ausente</span>
-                                {% endif %}
+                            <td class="text-center">
+                                <span class="badge bg-soft-success text-success px-3 py-2 rounded-pill">
+                                    Ativo
+                                </span>
                             </td>
-                            
-                            <td class="text-white fw-bold">
-                                <span class="text-info"><i class="bi bi-tag-fill me-1"></i></span>
-                                {% if profissional.category %}
-                                    {{ profissional.category.name }}
-                                {% else %}
-                                    <span class="text-muted fw-normal fst-italic">Não Definida (ID Cat: {{ profissional.service_category_id }})</span>
-                                {% endif %}
-                            </td>
-                            
                             <td class="pe-4 text-end">
-                                <span class="badge badge-custom bg-success text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Ativo
-                                </span>
+                                <a href="{{ url_for('editar_profissao', id=profissional.id) }}" class="btn btn-sm btn-light rounded-circle text-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form action="{{ url_for('deletar_profissao', id=profissional.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remover este profissional?');">
+                                    <button type="submit" class="btn btn-sm btn-light rounded-circle text-danger" title="Excluir">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center text-white py-5">
-                                <i class="bi bi-briefcase text-muted display-5 d-block mb-3"></i>
-                                <span class="fs-5 fw-semibold">Nenhum profissional encontrado.</span>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-briefcase display-6 d-block mb-3 opacity-25"></i>
+                                <span>Nenhum profissional encontrado.</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -80,54 +72,8 @@
 </div>
 
 <style>
-    /* Moldura externa do cartão em preto/escuro sólido */
-    .custom-card {
-        background-color: #1a1d20 !important;
-        border: 1px solid #343a40 !important;
-        border-radius: 10px !important;
-    }
-
-    /* Topo do cartão com tonalidade ligeiramente diferenciada para profundidade */
-    .custom-card-header {
-        background-color: #2b3035 !important;
-        border-bottom: 1px solid #343a40 !important;
-    }
-
-    /* Cabeçalhos (th) - Fundo Preto Sólido, Letras Brancas Fortes e Borda Inferior Marcante */
-    .custom-table th {
-        color: #ffffff !important;
-        background-color: #1a1d20 !important;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 800;
-        border-bottom: 3px solid #495057 !important;
-    }
-
-    /* Linhas de dados (tr) - Mesma cor de fundo do cabeçalho th para simetria visual absoluta */
-    .custom-table tbody tr {
-        background-color: #1a1d20 !important; 
-        border-bottom: 1px solid #343a40 !important;
-    }
-
-    /* Células de dados (td) - Forçadas a adotarem o mesmo fundo escuro, texto branco e negrito dos th */
-    .custom-table tbody td {
-        background-color: #1a1d20 !important;
-        color: #ffffff !important;
-        font-weight: 800 !important; 
-    }
-
-    /* Efeito Interativo (Hover): Realça suavemente a linha focada pelo mouse mantendo o tema escuro */
-    .custom-table tbody tr:hover {
-        background-color: #25292e !important;
-    }
-
-    /* Estilo customizado com sombra e espaçamento do Badge de Status */
-    .badge-custom {
-        font-size: 0.8rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
+    .bg-soft-success { background-color: rgba(16, 185, 129, 0.1); }
+    .table thead th { border-bottom: 1px solid #edf2f7; }
+    .table tbody td { border-bottom: 1px solid #edf2f7; color: #4a5568; }
 </style>
 {% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Termos de Uso - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-file-contract text-blue-600"></i> Termos de Uso
+        </h1>
+        <div class="prose prose-blue max-w-none text-gray-600 space-y-6 leading-relaxed">
+            <p>Bem-vindo ao Conectando Serviços. Ao utilizar nossa plataforma, você concorda com as seguintes regras:</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">1. Cadastro e Uso</h2>
+            <p>Os usuários são responsáveis pela veracidade das informações fornecidas no cadastro. É proibido compartilhar dados de contato (telefone, e-mail) antes da aceitação formal do orçamento no sistema.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">2. Responsabilidade</h2>
+            <p>O Conectando Serviços é uma plataforma de intermediação. A execução do serviço é de inteira responsabilidade do profissional contratado.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">3. Conduta</h2>
+            <p>Não toleramos comportamentos abusivos, spam ou fraudes. Usuários que violarem estas regras serão banidos permanentemente.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

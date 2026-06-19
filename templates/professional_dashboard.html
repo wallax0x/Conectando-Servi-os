@@ -1,161 +1,296 @@
 {% extends "base.html" %}
 
-{% block title %}Meus Pedidos - Conectando Serviços{% endblock %}
+{% block title %}Painel Profissional - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    
+    .hover-card-effect { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .hover-card-effect:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+    .hover-card-effect:hover .icon-box-anim { transform: scale(1.1) rotate(5deg); }
+    
+    .count-up { opacity: 0; transform: translateY(5px); transition: all 0.5s ease-out; }
+    .count-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* Estilos Customizados para o Dashboard do Profissional */
-    .dashboard-container {
-        max-width: 1000px;
-        margin: 20px auto;
-    }
-    .request-card {
-        border-radius: 12px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .request-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-    }
-    .status-badge {
-        font-weight: 600;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-    }
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-    }
-    .info-value {
-        color: #6c757d;
-        font-size: 0.95rem;
-    }
-    .description-box {
-        background-color: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        border-left: 4px solid #198754; /* Verde para Profissional */
-    }
-    .card-footer {
-        border-top: 1px solid #f0f0f0;
-    }
-</style>
-
-<section class="section mt-5">
-    <div class="container dashboard-container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold mb-0">Painel de Solicitações Recebidas</h2>
-        </div>
+<div class="bg-gray-50 min-h-screen pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <div class="row">
-            {% if requests %}
-                {% for req in requests %}
-                <div class="col-12 mb-4">
-                    <div class="card request-card shadow-sm border-0">
-                        <!-- CABEÇALHO DO CARD -->
-                        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold mb-0 text-primary">
-                                <i class="fas fa-user me-2"></i>{{ req.client.name }}
-                            </h5>
-                            
-                            {# Badge de Status Dinâmico #}
-                            <span class="status-badge 
-                                {% if req.status == 'concluido' or req.status == 'completed' %} bg-success text-white
-                                {% elif req.status == 'aceito' or req.status == 'accepted' %} bg-info text-white
-                                {% elif req.status == 'CANCELADO' %} bg-danger text-white
-                                {% else %} bg-warning text-dark {% endif %}">
-                                
-                                <i class="fas 
-                                    {% if req.status == 'concluido' or req.status == 'completed' %} fa-check-circle
-                                    {% elif req.status == 'aceito' or req.status == 'accepted' %} fa-handshake
-                                    {% elif req.status == 'CANCELADO' %} fa-ban
-                                    {% else %} fa-clock {% endif %} me-1"></i>
-                                
-                                {{ req.status | upper }}
-                            </span>
-                        </div>
+        <!-- Cabeçalho -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4 animate-fade-in">
+            <div>
+                <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Painel Profissional 🚀</h1>
+                <p class="text-gray-500 mt-1 font-medium italic">Sua central de gestão e faturamento em tempo real.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{{ url_for('editar_perfil') }}" class="bg-white hover:bg-blue-600 hover:text-white text-gray-700 font-bold py-3 px-6 rounded-2xl border border-gray-100 shadow-sm transition-all duration-300 flex items-center gap-2 group">
+                    <i class="fas fa-user-edit text-blue-600 group-hover:text-white transition-colors"></i> Editar Perfil
+                </a>
+            </div>
+        </div>
 
-                        <!-- CORPO DO CARD -->
-                        <div class="card-body px-4 pb-3">
-                            <h6 class="fw-bold text-dark mt-2">{{ req.title or 'Solicitação de Serviço' }}</h6>
-                            
-                            <div class="row g-3">
-                                <div class="col-md-7">
-                                    <div class="description-box mb-3">
-                                        <span class="info-label mb-1 d-block text-dark small text-uppercase">Descrição:</span>
-                                        <p class="mb-0 info-value fst-italic">"{{ req.description }}"</p>
+        <!-- Cards de Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <!-- Novos Pedidos -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-100 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-yellow-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-yellow-400 to-orange-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-yellow-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-list-ul"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ novos_pedidos }}">{{ novos_pedidos }}</h3>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Novos Pedidos</p>
+                </div>
+            </div>
+
+            <!-- Em Andamento -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-200 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-blue-400 to-blue-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-blue-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ em_andamento }}">{{ em_andamento }}</h3>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Em Andamento</p>
+                </div>
+            </div>
+
+            <!-- Concluídos -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-green-400 to-green-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-green-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ concluidos }}">{{ concluidos }}</h3>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Concluídos</p>
+                </div>
+            </div>
+
+            <!-- Total Ganho -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-400 relative overflow-hidden group text-nowrap">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-indigo-500 to-purple-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-gray-400 font-bold text-sm">R$</span>
+                        <h3 class="text-3xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_ganho }}" data-decimals="2">R$ {{ "%.2f"|format(total_ganho) }}</h3>
+                    </div>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Total Ganho</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Coluna Esquerda: Solicitações -->
+            <div class="lg:col-span-2 animate-fade-in delay-300">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
+                    Gerenciar Solicitações
+                </h2>
+                
+                {% if requests %}
+                    <div class="space-y-4">
+                        {% for req in requests %}
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-xl hover:border-blue-100 group">
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-blue-50 text-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                                        {{ req.client.name[0] | upper }}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 text-lg">{{ req.client.name }}</h4>
+                                        <p class="text-sm text-gray-500 font-medium flex items-center gap-1">
+                                            <i class="fas fa-map-marker-alt text-red-400"></i> 
+                                            {{ req.client.neighborhood or 'Endereço não informado' }}
+                                        </p>
                                     </div>
                                 </div>
-                                
-                                <div class="col-md-5 border-start d-none d-md-block ps-4">
-                                    {% if req.budget %}
-                                    <p class="mb-2">
-                                        <span class="info-label"><i class="fas fa-money-bill-wave text-success me-2"></i>Orçamento do Cliente:</span><br>
-                                        <span class="info-value">R$ {{ "%.2f"|format(req.budget) }}</span>
-                                    </p>
-                                    {% endif %}
-                                    <p class="mb-0">
-                                        <span class="info-label"><i class="fas fa-calendar-alt text-muted me-2"></i>Recebido em:</span><br>
-                                        <span class="info-value small">{{ req.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
-                                    </p>
+                                <span class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter
+                                    {% if req.status in ['concluido', 'completed'] %} bg-green-100 text-green-700
+                                    {% elif req.status in ['aceito', 'accepted', 'orcamento_enviado'] %} bg-blue-100 text-blue-700
+                                    {% elif req.status == 'CANCELADO' %} bg-red-100 text-red-700
+                                    {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+                                    {{ req.status | replace('_', ' ') | upper }}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-2 px-1">Serviço Solicitado</p>
+                                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 group-hover:bg-white group-hover:border-blue-50 transition-colors">
+                                    <span class="font-bold text-gray-900 block mb-1">{{ req.title or 'Sem Título' }}</span>
+                                    <p class="text-gray-600 text-sm leading-relaxed">{{ req.description }}</p>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- RODAPÉ DO CARD / AÇÕES -->
-                        <div class="card-footer bg-white p-3 d-flex flex-wrap justify-content-end gap-2 border-0">
-                            {% if req.status != 'CANCELADO' %}
-                                
-                                {# Botão do Chat #}
-                                <a href="{{ url_for('chat', request_id=req.id) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
-                                    <i class="fas fa-comments me-1"></i> Abrir Chat
+                            <!-- Ações Dinâmicas -->
+                            <div class="flex flex-wrap gap-3 border-t border-gray-50 pt-6">
+                                <a href="{{ url_for('chat', request_id=req.id) }}" class="flex-1 min-w-[120px] bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 border border-blue-100 hover:bg-blue-600 hover:text-white flex items-center justify-center gap-2">
+                                    <i class="fas fa-comment-dots"></i> Abrir Chat
                                 </a>
 
-                                {# Ações de Pendente #}
-                                {% if req.status == 'pendente' or req.status == 'pending' %}
-                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='aceito') }}" class="btn btn-success rounded-pill px-3 btn-sm">
-                                        <i class="fas fa-check me-1"></i> Aceitar Pedido
+                                {% if req.status in ['pendente', 'pending'] %}
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='aceito') }}" class="flex-[2] min-w-[150px] bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md shadow-green-100 transition-all duration-300 flex items-center justify-center gap-2">
+                                        <i class="fas fa-check"></i> Aceitar Pedido
                                     </a>
-                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='recusado') }}" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
-                                        <i class="fas fa-times me-1"></i> Recusar
-                                    </a>
-                                {% endif %}
-
-                                {# Ação de Aceito #}
-                                {% if req.status == 'aceito' or req.status == 'accepted' %}
-                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='concluido') }}" class="btn btn-primary rounded-pill px-3 btn-sm">
-                                        <i class="fas fa-flag-checkered me-1"></i> Marcar como Concluído
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='recusado') }}" class="bg-white hover:bg-red-50 text-red-500 px-4 py-3 rounded-xl text-sm font-bold border border-red-100 transition-all duration-300">
+                                        Recusar
                                     </a>
                                 {% endif %}
 
-                                {# Botão de Cancelar / Desistir #}
-                                {% if req.status in ['pendente', 'pending', 'orcamento_enviado', 'aceito', 'accepted'] %}
-                                    <form action="{{ url_for('profissional_cancela_pedido', request_id=req.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja cancelar este serviço? O cliente será notificado.');">
-                                        <button type="submit" class="btn btn-outline-danger rounded-pill px-3 btn-sm">
-                                            <i class="fas fa-times-circle me-1"></i> Cancelar Serviço
+                                {% if req.status in ['aceito', 'accepted', 'orcamento_enviado'] %}
+                                    <a href="{{ url_for('atualizar_status_pedido', pedido_id=req.id, novo_status='concluido') }}" class="flex-[2] min-w-[150px] bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md shadow-green-100 transition-all duration-300 flex items-center justify-center gap-2">
+                                        <i class="fas fa-flag-checkered"></i> Concluir Serviço
+                                    </a>
+                                {% endif %}
+
+                                {% if req.status not in ['concluido', 'completed', 'CANCELADO'] %}
+                                    <form action="{{ url_for('profissional_cancela_pedido', request_id=req.id) }}" method="POST" class="inline" onsubmit="return confirm('Cancelar este serviço?');">
+                                        <button type="submit" class="w-12 h-12 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300" title="Cancelar/Desistir">
+                                            <i class="fas fa-trash-alt text-lg"></i>
                                         </button>
                                     </form>
                                 {% endif %}
-                            {% else %}
-                                {# Badge para serviço cancelado #}
-                                <span class="badge bg-danger rounded-pill py-2 px-3">Serviço Cancelado</span>
-                            {% endif %}
+                            </div>
                         </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-3xl p-16 text-center shadow-sm border border-gray-100">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gray-50 text-gray-300 mb-6 text-4xl">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Nenhuma solicitação no momento</h3>
+                        <p class="text-gray-500 mt-2">Aguarde novas oportunidades de clientes em sua região.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Coluna Direita -->
+            <div class="animate-fade-in delay-400">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                    Meu Desempenho
+                </h2>
+                {% if total_ganho > 0 %}
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 hover-card-effect">
+                    <h6 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Faturamento Mensal (R$)</h6>
+                    <div class="h-64">
+                        <canvas id="faturamentoMensalChart"></canvas>
                     </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="text-center py-5 w-100 bg-white rounded shadow-sm">
-                    <div class="mb-4">
-                        <i class="fas fa-inbox fa-4x text-muted opacity-25"></i>
+                {% else %}
+                <!-- Estado Vazio (Nenhum ganho) -->
+                <div class="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+                        <i class="fas fa-chart-line"></i>
                     </div>
-                    <p class="lead text-muted">Você ainda não recebeu nenhuma solicitação de serviço.</p>
-                    <a href="{{ url_for('perfil') }}" class="btn btn-primary rounded-pill px-4">Ver Meu Perfil</a>
+                    <h3 class="text-lg font-bold text-gray-900">Sem desempenho ainda</h3>
+                    <p class="text-gray-500 text-sm mt-1 leading-relaxed">Seu faturamento mensal aparecerá aqui assim que você concluir seus primeiros serviços.</p>
                 </div>
-            {% endif %}
+                {% endif %}
+            </div>
+            
         </div>
     </div>
-</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- Animação Count-Up ---
+        const counters = document.querySelectorAll('.count-up-val');
+        const speed = 100; // velocidade da animação
+
+        counters.forEach(counter => {
+            const animate = () => {
+                const value = +counter.getAttribute('data-value');
+                const decimals = +counter.getAttribute('data-decimals') || 0;
+                const data = +counter.innerText;
+                
+                const time = value / speed;
+                
+                if (data < value) {
+                    const nextVal = data + (time > 0.01 ? time : 0.01);
+                    counter.innerText = nextVal.toFixed(decimals);
+                    setTimeout(animate, 10);
+                } else {
+                    counter.innerText = value.toFixed(decimals);
+                }
+            }
+            animate();
+        });
+
+        // --- Gráfico de Faturamento ---
+        const ctx = document.getElementById('faturamentoMensalChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels | tojson }},
+                datasets: [{
+                    label: 'Faturamento',
+                    data: {{ chart_data | tojson }},
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 5000, /* Cria uma escala inicial visualmente mais atraente e profissional */
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            stepSize: 1000, /* Pulos de mil em mil reais */
+                            callback: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

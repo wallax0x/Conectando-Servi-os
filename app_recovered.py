@@ -1,7 +1,7 @@
 # app.py - Versão revisada completa (CRUD categorias + front + proteções)
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
 from flask import (
@@ -12,10 +12,9 @@ from flask_login import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from validate_docbr import CPF
-from sqlalchemy import or_, func, extract
+from sqlalchemy import or_
 from functools import wraps
 import base64
-import json
 from utils import censurar_dados
 # ---------- Config do Flask ----------
 app = Flask(__name__)
@@ -54,7 +53,7 @@ login_manager.login_view = "login"
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        return db.session.get(User, int(user_id))
+        return User.query.get(int(user_id))
     except Exception:
         return None
 
@@ -73,26 +72,16 @@ def inject_notifications():
     return dict(unread_notifications_count=0, recent_notifications=[])
 
 
-# API para atualizar contagem via polling
-@app.route('/api/unread-count')
-def unread_count_api():
-    if not current_user.is_authenticated:
-        return jsonify({'count': 0}), 200
-    count = current_user.notifications.filter_by(is_read=False).count()
-    return jsonify({'count': count})
-
-
 @app.route('/ler-notificacao/<int:notif_id>')
 @login_required
 def read_notification(notif_id):
-    notif = db.session.get(Notification, notif_id)
-    if notif and notif.user_id == current_user.id:
+    notif = Notification.query.get_or_404(notif_id)
+    if notif.user_id == current_user.id:
         notif.is_read = True
         db.session.commit()
         if notif.link:
             return redirect(notif.link)
     return redirect(url_for('dashboard'))
-
 
 
 # ---------- CPF validator ----------
@@ -104,10 +93,15 @@ cpf_validator = CPF()
 
 
 def admin_required(f):
+    """Garante que apenas usuários com user_type == 'admin' acessem a rota."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('usuario'):
-            return redirect(url_for('admin'))
+        if not current_user.is_authenticated:
+            flash('Faça login para acessar esta área.', 'danger')
+            return redirect(url_for('login'))
+        if getattr(current_user, 'user_type', None) != 'admin':
+            flash('Acesso negado: área administrativa.', 'danger')
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -256,21 +250,6 @@ def login():
         flash('CPF ou senha incorretos.', 'danger')
 
     return render_template('login.html')
-
-
-@app.route('/recuperar-senha', methods=['GET', 'POST'])
-def recuperar_senha():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        identifier = (request.form.get('identifier') or '').strip()
-        # No futuro: implementar lógica de envio de e-mail com token
-        flash(f'Se o e-mail ou CPF {identifier} estiver cadastrado, você receberá um link de recuperação em breve.', 'info')
-        return redirect(url_for('login'))
-
-    return render_template('forgot_password.html')
-
 
 # --------------------------
 # LOGOUT
@@ -461,145 +440,20 @@ def complete_professional_profile():
 # --------------------------
 
 
-def limpar_valor_moeda(valor):
-    if not valor:
-        return 0.0
-    if isinstance(valor, (int, float)):
-        return float(valor)
-    
-    # Limpeza implacável: troca vírgula por ponto e arranca tudo que não for número ou ponto
-    valor_bruto = str(valor)
-    valor_limpo = re.sub(r'[^0-9.]', '', valor_bruto.replace(',', '.'))
-    
-    try:
-        if valor_limpo:
-            return float(valor_limpo)
-    except Exception as e:
-        print(f"Erro ao converter valor: {valor_bruto} -> {e}")
-    return 0.0
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    from datetime import timedelta
     if getattr(current_user, 'user_type', None) == 'professional':
         prof = Professional.query.filter_by(user_id=current_user.id).first()
         if not prof:
             return redirect(url_for('complete_professional_profile'))
-        
-        # Busca todas as solicitações para filtrar via Python (mais robusto contra acentos/case)
         requests_list = ServiceRequest.query.filter_by(
             professional_id=prof.id).order_by(ServiceRequest.created_at.desc()).all()
-        
-        # Filtros via Python para garantir precisão
-        novos_pedidos = sum(1 for r in requests_list if r.status and r.status.upper() in ['PENDENTE', 'PENDING'])
-        em_andamento = sum(1 for r in requests_list if r.status and r.status.upper() in ['ACEITO', 'ACCEPTED', 'ORCAMENTO_ENVIADO', 'ORÇAMENTO ENVIADO', 'EM ANDAMENTO'])
-        concluidos = sum(1 for r in requests_list if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO'])
-        
-        # Conversão segura para Total Ganho e Gráfico (Regex implacável)
-        total_ganho = 0.0
-        meses_labels_full = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-        chart_labels = []
-        chart_data = [0.0] * 6
-        hoje = datetime.now()
-        
-        # Mapeamento de índices para os últimos 6 meses
-        meses_map = {}
-        for i in range(5, -1, -1):
-            d = hoje - timedelta(days=i*30)
-            m_idx = d.month
-            chart_labels.append(meses_labels_full[m_idx-1])
-            meses_map[m_idx] = 5 - i
-
-        for r in requests_list:
-            if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO']:
-                valor_bruto = str(r.final_price if r.final_price is not None else (r.budget if r.budget is not None else 0))
-                v_float = limpar_valor_moeda(valor_bruto)
-                total_ganho += v_float
-                
-                if r.created_at and r.created_at.month in meses_map:
-                    chart_data[meses_map[r.created_at.month]] += v_float
-
-        # Mantendo 'stats' para compatibilidade
-        stats = {
-            'novos': novos_pedidos,
-            'ativos': em_andamento,
-            'concluidos': concluidos,
-            'total_ganho': total_ganho
-        }
-
-        return render_template('professional_dashboard.html', 
-                               professional=prof, 
-                               requests=requests_list, 
-                               stats=stats,
-                               novos_pedidos=novos_pedidos,
-                               em_andamento=em_andamento,
-                               concluidos=concluidos,
-                               total_ganho=total_ganho,
-                               chart_labels=chart_labels,
-                               chart_data=chart_data)
+        return render_template('professional_dashboard.html', professional=prof, requests=requests_list)
     else:
-        # Busca todas as solicitações para filtrar via Python
         requests_list = ServiceRequest.query.filter_by(
             client_id=current_user.id).order_by(ServiceRequest.created_at.desc()).all()
-        
-        # Estrutura para os últimos 6 meses
-        meses_labels_full = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-        chart_labels = []
-        chart_data = [0.0] * 6
-        hoje = datetime.now()
-        
-        meses_map = {}
-        for i in range(5, -1, -1):
-            d = hoje - timedelta(days=i*30)
-            m_idx = d.month
-            chart_labels.append(meses_labels_full[m_idx-1])
-            meses_map[m_idx] = 5 - i
-
-        # Filtros via Python para garantir precisão
-        total_pendentes = sum(1 for r in requests_list if r.status and r.status.upper() in ['PENDENTE', 'PENDING', 'ORCAMENTO_ENVIADO', 'ORÇAMENTO ENVIADO'])
-        total_concluidos = sum(1 for r in requests_list if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO'])
-        
-        # Conversão segura para Total Investido e Gráfico
-        total_investido = 0.0
-        for r in requests_list:
-            if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO']:
-                valor_bruto = str(r.final_price if r.final_price is not None else (r.budget if r.budget is not None else 0))
-                v_float = limpar_valor_moeda(valor_bruto)
-                total_investido += v_float
-                
-                if r.created_at and r.created_at.month in meses_map:
-                    chart_data[meses_map[r.created_at.month]] += v_float
-
-        # Mantendo 'stats' para compatibilidade
-        stats = {
-            'pendentes': total_pendentes,
-            'concluidos': total_concluidos,
-            'total_investido': total_investido
-        }
-
-        # Gastos por Categoria (para o gráfico de barras)
-        gastos_por_cat = db.session.query(
-            ServiceCategory.name, func.sum(ServiceRequest.final_price)
-        ).join(Professional, Professional.category_id == ServiceCategory.id)\
-         .join(ServiceRequest, ServiceRequest.professional_id == Professional.id)\
-         .filter(ServiceRequest.client_id == current_user.id)\
-         .filter(func.lower(ServiceRequest.status).in_(['concluido', 'completed', 'finalizado']))\
-         .group_by(ServiceCategory.name).all()
-        
-        spending_labels = [g[0] for g in gastos_por_cat]
-        spending_values = [float(g[1] or 0) for g in gastos_por_cat]
-        
-        return render_template('dashboard_client.html', 
-                               requests=requests_list, 
-                               stats=stats,
-                               total_pendentes=total_pendentes,
-                               total_concluidos=total_concluidos,
-                               total_investido=total_investido,
-                               spending_labels=spending_labels,
-                               spending_values=spending_values,
-                               chart_labels=chart_labels,
-                               chart_data=chart_data)
+        return render_template('dashboard_client.html', requests=requests_list)
 
 
 # --------------------------
@@ -922,41 +776,23 @@ def admin():
 
 
 @app.route('/admin/dashboard')
-@admin_required
 def admin_dashboard():
+    # Proteção: impede que entrem na página direto sem logar
+    if not session.get('usuario'):
+        return redirect(url_for('admin'))
+
     # Puxa os dados reais do seu banco de dados para os 4 cartões informativos
     total_categorias = ServiceCategory.query.count()
     total_profissionais = Professional.query.count()
     total_usuarios = User.query.count()
     total_pedidos = ServiceRequest.query.count()
 
-    # Dados para Gráficos
-    pedidos_por_status = db.session.query(
-        ServiceRequest.status, func.count(ServiceRequest.id)
-    ).group_by(ServiceRequest.status).all()
-    
-    status_labels = [s[0].upper() for s in pedidos_por_status]
-    status_values = [s[1] for s in pedidos_por_status]
-
-    pedidos_por_categoria = db.session.query(
-        ServiceCategory.name, func.count(ServiceRequest.id)
-    ).join(Professional, Professional.category_id == ServiceCategory.id)\
-     .join(ServiceRequest, ServiceRequest.professional_id == Professional.id)\
-     .group_by(ServiceCategory.name).all()
-    
-    cat_labels = [c[0] for c in pedidos_por_categoria]
-    cat_values = [c[1] for c in pedidos_por_categoria]
-
     # Renderiza o arquivo que criamos estendendo a sua base_dashboard.html
     return render_template('admin/dashboard.html',
                            total_categorias=total_categorias,
                            total_profissionais=total_profissionais,
                            total_usuarios=total_usuarios,
-                           total_pedidos=total_pedidos,
-                           status_labels=status_labels,
-                           status_values=status_values,
-                           cat_labels=cat_labels,
-                           cat_values=cat_values)
+                           total_pedidos=total_pedidos)
 
 
 @app.route('/logout_admin')
@@ -1028,9 +864,7 @@ def adicionar_categoria():
 
 @app.route('/admin/categorias/editar/<int:id>', methods=['GET', 'POST'])
 def editar_categoria(id):
-    categoria = db.session.get(ServiceCategory, id)
-    if not categoria:
-        abort(404)
+    categoria = ServiceCategory.query.get_or_404(id)
 
     if request.method == 'POST':
         imagem = request.files.get('Imagem')
@@ -1053,9 +887,7 @@ def editar_categoria(id):
 
 @app.route('/admin/categorias/exluir/<int:id>', methods=['POST'])
 def deletar_categoria(id):
-    categoria = db.session.get(ServiceCategory, id)
-    if not categoria:
-        abort(404)
+    categoria = ServiceCategory.query.get_or_404(id)
     # evita exclusão se houver profissionais vinculados
     try:
         has_profs = (categoria.professionals is not None) and (
@@ -1131,9 +963,7 @@ def adicionar_profissao():
 
 @app.route('/admin/profissoes/editar/<int:id>', methods=['GET', 'POST'])
 def editar_profissao(id):
-    prof = db.session.get(Professional, id)
-    if not prof:
-        abort(404)
+    prof = Professional.query.get_or_404(id)
     
     # Permite que o próprio usuário OU o Administrador edite o perfil
     if prof.user_id != current_user.id and not session.get('usuario'):
@@ -1157,9 +987,7 @@ def editar_profissao(id):
 
 @app.route('/admin/profissoes/excluir/<int:id>', methods=['POST'])
 def deletar_profissao(id):
-    prof = db.session.get(Professional, id)
-    if not prof:
-        abort(404)
+    prof = Professional.query.get_or_404(id)
     
     # Permite que o próprio usuário OU o Administrador delete o perfil
     if prof.user_id != current_user.id and not session.get('usuario'):
@@ -1183,123 +1011,23 @@ def deletar_profissao(id):
 @app.route('/usuarios/perfil/editar', methods=['GET', 'POST'])
 @login_required
 def editar_perfil():
-    user = db.session.get(User, current_user.id)
+    user = User.query.get_or_404(current_user.id)
     prof = Professional.query.filter_by(user_id=user.id).first()
     categories = ServiceCategory.query.order_by(ServiceCategory.name).all()
 
     if request.method == 'POST':
-        form_type = request.form.get('form_type')
-
-        if form_type == 'profile_info':
-            user.name = (request.form.get('name') or user.name).strip()
-            user.email = (request.form.get('email') or user.email).strip().lower()
-            user.phone = (request.form.get('phone') or user.phone).strip()
-            user.cep = (request.form.get('cep') or user.cep).strip()
-            user.address = (request.form.get('address') or user.address).strip()
-            user.neighborhood = (request.form.get('neighborhood') or user.neighborhood).strip()
-            user.city = (request.form.get('city') or user.city).strip()
-            user.state = (request.form.get('state') or user.state).strip().upper()
-
-            # Upload de Foto de Perfil
-            foto = request.files.get('profile_photo')
-            if foto and foto.filename:
-                import base64
-                image_content = foto.read()
-                user.profile_image = f"data:{foto.content_type};base64,{base64.b64encode(image_content).decode('utf-8')}"
-
-            # Se for profissional, atualizar dados do perfil profissional também
-            if prof:
-                prof.category_id = int(request.form.get('category_id')) if request.form.get('category_id') else None
-                prof.experience_years = int(request.form.get('experience_years') or 0)
-                prof.starting_price = float(request.form.get('starting_price') or 0)
-                prof.response_time = request.form.get('response_time')
-                prof.bio = censurar_dados((request.form.get('bio') or '').strip())
-                prof.tags = censurar_dados((request.form.get('tags') or '').strip())
-                prof.availability = request.form.get('availability')
-                prof.service_range = request.form.get('service_range')
-
-                # Upload de Fotos do Portfólio
-                portfolio_files = request.files.getlist('portfolio_photos')
-                if portfolio_files:
-                    import base64
-                    current_portfolio = prof.get_portfolio_photos()
-                    for file in portfolio_files:
-                        if file and file.filename:
-                            img_content = file.read()
-                            img_base64 = f"data:{file.content_type};base64,{base64.b64encode(img_content).decode('utf-8')}"
-                            if len(current_portfolio) < 6:
-                                current_portfolio.append(img_base64)
-                    prof.portfolio_photos = json.dumps(current_portfolio)
-
-            db.session.commit()
-            flash('Perfil atualizado com sucesso!', 'success')
-
-        elif form_type == 'security':
-            from werkzeug.security import check_password_hash
-            current_pass = request.form.get('current_password')
-            new_pass = request.form.get('new_password')
-            confirm_pass = request.form.get('confirm_password')
-
-            if not check_password_hash(user.password_hash, current_pass):
-                flash('Senha atual incorreta.', 'danger')
-            elif new_pass != confirm_pass:
-                flash('A nova senha e a confirmação não coincidem.', 'danger')
-            elif len(new_pass) < 6:
-                flash('A nova senha deve ter pelo menos 6 caracteres.', 'warning')
-            else:
-                user.password_hash = generate_password_hash(new_pass)
-                db.session.commit()
-                flash('Senha alterada com sucesso!', 'success')
-
-        return redirect(url_for('editar_perfil'))
+        user.name = (request.form.get('name') or user.name).strip()
+        user.email = (request.form.get('email') or user.email).strip().lower()
+        user.phone = (request.form.get('phone') or user.phone).strip()
+        senha = (request.form.get('password') or '').strip()
+        if senha:
+            user.password_hash = generate_password_hash(senha)
+        # opcional: atualizar endereço/cep – fazer validação se necessário
+        db.session.commit()
+        flash('Perfil atualizado com sucesso!', 'success')
+        return redirect(url_for('perfil'))
 
     return render_template('usuarios/editar.html', user=user, prof=prof, categories=categories)
-
-
-@app.route('/remover-foto-portfolio/<int:photo_index>', methods=['POST'])
-@login_required
-def remover_foto_portfolio(photo_index):
-    prof = Professional.query.filter_by(user_id=current_user.id).first()
-    if not prof:
-        abort(403)
-
-    current_portfolio = prof.get_portfolio_photos()
-    if 0 <= photo_index < len(current_portfolio):
-        current_portfolio.pop(photo_index)
-        prof.portfolio_photos = json.dumps(current_portfolio)
-        db.session.commit()
-        flash('Foto removida do portfólio.', 'success')
-
-    return redirect(url_for('editar_perfil'))
-
-
-# --------------------------
-# PÁGINAS INSTITUCIONAIS
-# --------------------------
-@app.route('/quem-somos')
-def quem_somos():
-    return render_template('pages/quem_somos.html')
-
-@app.route('/como-funciona')
-def como_funciona():
-    return render_template('pages/como_funciona.html')
-
-@app.route('/contato')
-def contato():
-    return render_template('pages/contato.html')
-
-@app.route('/ajuda')
-def ajuda():
-    return render_template('pages/ajuda.html')
-
-@app.route('/termos')
-def termos():
-    return render_template('pages/termos.html')
-
-@app.route('/privacidade')
-def privacidade():
-    return render_template('pages/privacidade.html')
-
 
 # --------------------------
 # UTILITÁRIOS (startup)

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Central de Ajuda - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-question-circle text-blue-600"></i> Central de Ajuda
+        </h1>
+        <div class="space-y-6">
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2">Como faço para contratar um profissional?</h3>
+                <p class="text-gray-600">Basta buscar pela categoria desejada, escolher o profissional, clicar em "Solicitar Orçamento" e aguardar o retorno via chat.</p>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2">Como funciona o pagamento?</h3>
+                <p class="text-gray-600">O pagamento é combinado diretamente com o profissional através do nosso chat seguro. Em breve, teremos integração direta via PIX.</p>
+            </div>
+            <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                <h3 class="font-bold text-gray-900 mb-2">O que fazer se tiver um problema com o serviço?</h3>
+                <p class="text-gray-600">Você pode denunciar o profissional através do perfil dele ou entrar em contato com nosso suporte via e-mail.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

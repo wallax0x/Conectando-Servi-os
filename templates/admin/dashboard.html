@@ -5,80 +5,182 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row pt-3">
+    <!-- Cartões de Resumo Premium -->
+    <div class="row pt-4">
         <div class="col-lg-3 col-6">
-            <div class="small-box text-bg-primary mb-4 p-3 rounded shadow-sm">
+            <div class="small-box bg-white mb-4 p-4 rounded-3 shadow-sm border-0 border-top border-primary border-4">
                 <div class="inner">
-                    <h3>{{ total_categorias }}</h3>
-                    <p>Categorias</p>
+                    <h3 class="fw-bold text-dark mb-1">{{ total_categorias }}</h3>
+                    <p class="text-muted mb-0">Categorias</p>
                 </div>
-                <div class="icon">
+                <div class="icon-premium text-primary">
                     <i class="bi bi-tags-fill"></i>
                 </div>
-                <a href="{{ url_for('listar_categorias') }}" class="small-box-footer text-white text-decoration-none d-block mt-2">
-                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                <a href="{{ url_for('listar_categorias') }}" class="small-box-footer-premium mt-3 d-block text-decoration-none text-primary font-bold small">
+                    Ver detalhes <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="small-box text-bg-success mb-4 p-3 rounded shadow-sm">
+            <div class="small-box bg-white mb-4 p-4 rounded-3 shadow-sm border-0 border-top border-success border-4">
                 <div class="inner">
-                    <h3>{{ total_profissionais }}</h3>
-                    <p>Profissionais</p>
+                    <h3 class="fw-bold text-dark mb-1">{{ total_profissionais }}</h3>
+                    <p class="text-muted mb-0">Profissionais</p>
                 </div>
-                <div class="icon">
+                <div class="icon-premium text-success">
                     <i class="bi bi-briefcase-fill"></i>
                 </div>
-                <a href="{{ url_for('listar_profissoes') }}" class="small-box-footer text-white text-decoration-none d-block mt-2">
-                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                <a href="{{ url_for('listar_profissoes') }}" class="small-box-footer-premium mt-3 d-block text-decoration-none text-success font-bold small">
+                    Ver detalhes <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="small-box text-bg-warning mb-4 p-3 rounded shadow-sm">
-                <div class="inner text-dark">
-                    <h3>{{ total_usuarios }}</h3>
-                    <p>Usuários Totais</p>
-                </div>
-                <div class="icon">
-                    <i class="bi bi-people-fill text-dark"></i>
-                </div>
-                <a href="{{ url_for('admin_listar_usuarios') }}" class="small-box-footer text-dark text-decoration-none d-block mt-2">
-                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-6">
-            <div class="small-box text-bg-danger mb-4 p-3 rounded shadow-sm">
+            <div class="small-box bg-white mb-4 p-4 rounded-3 shadow-sm border-0 border-top border-warning border-4">
                 <div class="inner">
-                    <h3>{{ total_pedidos }}</h3>
-                    <p>Solicitações</p>
+                    <h3 class="fw-bold text-dark mb-1">{{ total_usuarios }}</h3>
+                    <p class="text-muted mb-0">Usuários Totais</p>
                 </div>
-                <div class="icon">
+                <div class="icon-premium text-warning">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <a href="{{ url_for('admin_listar_usuarios') }}" class="small-box-footer-premium mt-3 d-block text-decoration-none text-warning font-bold small">
+                    Ver detalhes <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-white mb-4 p-4 rounded-3 shadow-sm border-0 border-top border-danger border-4">
+                <div class="inner">
+                    <h3 class="fw-bold text-dark mb-1">{{ total_pedidos }}</h3>
+                    <p class="text-muted mb-0">Solicitações</p>
+                </div>
+                <div class="icon-premium text-danger">
                     <i class="bi bi-chat-dots-fill"></i>
                 </div>
-                <a href="#" class="small-box-footer text-white text-decoration-none d-block mt-2">
-                    Ver detalhes <i class="bi bi-arrow-right-circle"></i>
+                <a href="{{ url_for('admin_listar_solicitacoes') }}" class="small-box-footer-premium mt-3 d-block text-decoration-none text-danger font-bold small">
+                    Ver detalhes <i class="bi bi-arrow-right ms-1"></i>
                 </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção de Gráficos -->
+    <div class="row mt-4">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h3 class="card-title fw-bold text-dark"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Pedidos por Status</h3>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div style="min-height: 250px; height: 250px;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h3 class="card-title fw-bold text-dark"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Pedidos por Categoria</h3>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div style="min-height: 250px; height: 250px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .small-box { position: relative; overflow: hidden; }
+    .small-box { position: relative; overflow: hidden; transition: all 0.3s ease; }
+    .small-box:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
     .small-box .inner { position: relative; z-index: 5; }
-    .small-box .icon {
+    .icon-premium {
         position: absolute;
-        top: 10px;
-        right: 15px;
+        top: 20px;
+        right: 20px;
         z-index: 0;
-        font-size: 50px;
-        color: rgba(0,0,0,0.15);
+        font-size: 40px;
+        opacity: 0.2;
+        transition: all 0.3s ease;
     }
-    .small-box:hover .icon { font-size: 55px; transition: 0.3s; }
+    .small-box:hover .icon-premium { opacity: 0.8; transform: scale(1.1); }
+    .card-title { font-size: 1.1rem; }
+    .small-box-footer-premium:hover { text-decoration: underline !important; }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Gráfico de Status (Donut Tunning)
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ status_labels | tojson }},
+                datasets: [{
+                    data: {{ status_values | tojson }},
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'],
+                    borderWidth: 0,
+                    cutout: '75%', /* Afina o anel */
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { 
+                            usePointStyle: true, 
+                            boxWidth: 8,
+                            padding: 20,
+                            font: { size: 12, weight: '600' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Categorias (Bar Chart Tunning)
+        const catCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(catCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ cat_labels | tojson }},
+                datasets: [{
+                    label: 'Pedidos',
+                    data: {{ cat_values | tojson }},
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true, 
+                        border: { display: false },
+                        grid: { color: '#f3f4f6' },
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

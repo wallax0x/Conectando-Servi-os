@@ -2,62 +2,94 @@
 
 {% block title %}Avaliar Serviço - Conectando Serviços{% endblock %}
 
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .star-rating input {
+        display: none;
+    }
+    .star-rating label {
+        cursor: pointer;
+        font-size: 2.5rem;
+        color: #e5e7eb; /* gray-200 */
+        transition: color 0.2s ease-in-out;
+    }
+    .star-rating input:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #facc15; /* yellow-400 */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow-sm border-0" style="border-radius: 15px;">
-                    <div class="card-header bg-white p-4 border-0 text-center">
-                        <h2 class="fw-bold text-primary mb-1">Como foi o serviço?</h2>
-                        <p class="text-muted small">Sua avaliação ajuda outros clientes a escolherem bons profissionais.</p>
-                    </div>
-                    
-                    <div class="card-body px-4 pb-4">
-                        <div class="alert alert-light border mb-4">
-                            <h6 class="mb-1 fw-bold">Serviço: {{ service_request.title }}</h6>
-                            <p class="mb-0 text-muted small">Profissional: {{ service_request.professional.user.name }}</p>
-                        </div>
+<div class="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div class="max-w-xl w-full bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 px-8 py-6 text-white text-center">
+            <h2 class="text-2xl font-black tracking-tight">Avaliar Serviço</h2>
+            <p class="text-blue-100 text-sm mt-1">Sua opinião é fundamental para a qualidade da nossa comunidade.</p>
+        </div>
 
-                        <form action="{{ url_for('avaliar_servico', request_id=service_request.id) }}" method="POST">
-                            <div class="form-group mb-4">
-                                <label for="rating" class="form-label fw-bold">Sua nota:</label>
-                                <select name="rating" id="rating" class="form-select form-select-lg" required>
-                                    <option value="" disabled selected>Selecione de 1 a 5 estrelas</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ (Excelente)</option>
-                                    <option value="4">⭐⭐⭐⭐ (Muito Bom)</option>
-                                    <option value="3">⭐⭐⭐ (Bom)</option>
-                                    <option value="2">⭐⭐ (Regular)</option>
-                                    <option value="1">⭐ (Ruim)</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group mb-4">
-                                <label for="comment" class="form-label fw-bold">Seu comentário:</label>
-                                <textarea name="comment" id="comment" rows="4" class="form-control" 
-                                          placeholder="O que você achou do trabalho? (Lembre-se: não é permitido compartilhar dados de contato aqui)" 
-                                          required></textarea>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg fw-bold py-3">
-                                    Enviar Avaliação
-                                </button>
-                                <a href="{{ url_for('dashboard') }}" class="btn btn-link text-muted mt-2">
-                                    Cancelar
-                                </a>
-                            </div>
-                        </form>
-                    </div>
+        <div class="p-8">
+            <!-- Informações do Serviço -->
+            <div class="bg-gray-50 rounded-2xl p-5 border border-gray-200 mb-8 flex items-center gap-4">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-3xl font-bold">
+                    {{ service_request.professional.user.name[0] | upper }}
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">{{ service_request.professional.user.name }}</h4>
+                    <p class="text-blue-600 text-xs font-bold uppercase tracking-widest">{{ service_request.professional.category.name }}</p>
+                    <p class="text-gray-500 text-xs mt-1">{{ service_request.title }}</p>
                 </div>
             </div>
+
+            <form method="POST" class="space-y-8">
+                <!-- Estrelas -->
+                <div class="text-center">
+                    <label class="block text-sm font-bold text-gray-700 mb-4 uppercase tracking-widest">Sua Nota</label>
+                    <div class="star-rating">
+                        <input type="radio" id="star5" name="rating" value="5" required />
+                        <label for="star5" title="5 estrelas"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star4" name="rating" value="4" />
+                        <label for="star4" title="4 estrelas"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star3" name="rating" value="3" />
+                        <label for="star3" title="3 estrelas"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star2" name="rating" value="2" />
+                        <label for="star2" title="2 estrelas"><i class="fas fa-star"></i></label>
+                        <input type="radio" id="star1" name="rating" value="1" />
+                        <label for="star1" title="1 estrela"><i class="fas fa-star"></i></label>
+                    </div>
+                </div>
+
+                <!-- Comentário -->
+                <div class="space-y-2">
+                    <label for="comment" class="block text-sm font-bold text-gray-700 uppercase tracking-widest px-1">O que achou do serviço?</label>
+                    <textarea id="comment" name="comment" rows="4" required
+                        class="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition resize-none text-gray-700"
+                        placeholder="Conte detalhes sobre a pontualidade, qualidade e atendimento..."></textarea>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex flex-col gap-3">
+                    <button type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 px-8 rounded-2xl shadow-lg shadow-blue-200 transition duration-300 text-lg uppercase tracking-wider">
+                        Enviar Avaliação
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" 
+                        class="w-full text-center text-gray-400 hover:text-gray-600 font-bold py-2 transition text-sm">
+                        Cancelar e voltar
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
-</section>
-
-<style>
-    .form-select-lg { font-size: 1rem; border-radius: 10px; }
-    .form-control { border-radius: 10px; }
-    .btn-lg { border-radius: 10px; }
-</style>
+</div>
 {% endblock %}

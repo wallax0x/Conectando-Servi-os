@@ -1,45 +1,114 @@
 {% extends "base.html" %}
 
-{% block title %}Completar Perfil - ServiçosPro{% endblock %}
+{% block title %}Completar Perfil Profissional - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <div class="auth-container">
-            <div class="auth-card">
-                <h2>Complete seu Perfil Profissional</h2>
-                <p class="subtitle">Adicione informações sobre seus serviços</p>
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Complete seu Perfil Profissional 🚀</h1>
+            <p class="text-lg text-gray-500 mt-3">Adicione informações detalhadas para atrair mais clientes e gerar confiança.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('complete_professional_profile') }}" class="space-y-8">
+            
+            <!-- SEÇÃO: DADOS BÁSICOS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-id-card text-blue-600"></i> Informações do Serviço
+                    </h3>
+                </div>
                 
-                <form method="POST" action="{{ url_for('complete_professional_profile') }}">
-                    <div class="form-group">
-                        <label for="category_id">Categoria Principal</label>
-                        <select id="category_id" name="category_id" required class="form-input">
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Categoria Principal</label>
+                        <select name="category_id" required
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none bg-white">
                             <option value="">Selecione uma categoria</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}">{{ category.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="bio">Sobre Você</label>
-                        <textarea id="bio" name="bio" rows="4" class="form-input" placeholder="Descreva sua experiência e especialidades"></textarea>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Anos de Experiência</label>
+                        <input type="number" name="experience_years" required min="0" placeholder="Ex: 5"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="experience_years">Anos de Experiência</label>
-                        <input type="number" id="experience_years" name="experience_years" class="form-input" min="0">
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Preço Inicial (R$)</label>
+                        <input type="number" step="0.01" name="starting_price" required placeholder="0.00"
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="starting_price">Preço Inicial (R$)</label>
-                        <input type="number" id="starting_price" name="starting_price" step="0.01" class="form-input" placeholder="100.00">
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Tempo Médio de Resposta</label>
+                        <input type="text" name="response_time" placeholder="Ex: 1 hora, 1 dia..."
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
                     </div>
-                    
-                    <button type="submit" class="btn-primary btn-block">Salvar Perfil</button>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- SEÇÃO: DETALHES E DIFERENCIAIS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-star text-blue-600"></i> Seus Diferenciais
+                    </h3>
+                </div>
+                
+                <div class="p-8 space-y-6">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Descrição da sua experiência (Biografia)</label>
+                        <textarea name="bio" rows="5" required
+                            placeholder="Conte um pouco sobre sua trajetória, há quanto tempo atua na área e seus diferenciais..."
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none resize-none"></textarea>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-sm font-semibold text-gray-700 px-1">Especialidades (separe por vírgula)</label>
+                        <input type="text" name="tags" placeholder="Ex: Pintura, Alvenaria, Manutenção..."
+                            class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Dias de Atendimento</label>
+                            <select name="availability" required
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none bg-white">
+                                <option value="Segunda a Sexta">Segunda a Sexta</option>
+                                <option value="Finais de Semana">Finais de Semana</option>
+                                <option value="Todos os dias">Todos os dias</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-sm font-semibold text-gray-700 px-1">Onde você atende?</label>
+                            <input type="text" name="service_range" placeholder="Ex: Apenas Garanhuns, Todo o Estado..."
+                                class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-200 transition duration-300 text-lg">
+                    Salvar e Publicar Perfil
+                </button>
+                <p class="text-center text-gray-400 text-sm mt-4">
+                    Ao publicar seu perfil, você concorda com nossos termos de prestação de serviço.
+                </p>
+            </div>
+        </form>
     </div>
-</section>
+</div>
 {% endblock %}

@@ -1,52 +1,54 @@
 {% extends 'base_dashboard.html' %}
 
-{% block title %}Categorias de Serviço{% endblock %}
-{% block header %}Gerenciamento de Categorias{% endblock %}
+{% block title %}Gerenciar Categorias{% endblock %}
+{% block header %}Categorias de Serviço{% endblock %}
 
 {% block content %}
 <div class="container-fluid pt-4">
-    <div class="card custom-card border-0 shadow">
-        
-        <div class="card-header custom-card-header d-flex align-items-center py-3">
-            <h3 class="card-title mb-0 fw-bold fs-5 text-white">
-                <i class="bi bi-tags-fill text-info me-2"></i>
-                Categorias de Serviço Cadastradas
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 px-4 border-bottom-0 d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-tags-fill text-primary me-2"></i>
+                Categorias Cadastradas
             </h3>
+            <a href="{{ url_for('adicionar_categoria') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                <i class="bi bi-plus-lg me-1"></i> Nova Categoria
+            </a>
         </div>
-        
+
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table custom-table mb-0 align-middle">
-                    <thead>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th class="ps-4 py-3" style="width: 120px;">ID</th>
-                            <th class="py-3">Nome da Categoria</th>
-                            <th class="pe-4 py-3 text-end" style="width: 200px;">Ações</th>
+                            <th class="ps-4 py-3 text-muted small text-uppercase fw-bold" style="width: 100px;">ID</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold">Nome da Categoria</th>
+                            <th class="pe-4 py-3 text-muted small text-uppercase fw-bold text-end">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for categoria in categorias %}
                         <tr>
-                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ categoria.id }}</td>
-                            
+                            <td class="ps-4 small text-muted">#{{ categoria.id }}</td>
                             <td>
-                                <span class="fw-bold text-white fs-6">{{ categoria.name }}</span>
+                                <span class="fw-bold text-dark">{{ categoria.name }}</span>
                             </td>
-                            
                             <td class="pe-4 text-end">
-                                <a href="#" class="btn btn-sm btn-outline-info fw-bold me-1">
-                                    <i class="bi bi-pencil-square"></i> Editar
+                                <a href="{{ url_for('editar_categoria', id=categoria.id) }}" class="btn btn-sm btn-light rounded-circle text-primary me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
                                 </a>
-                                <a href="#" class="btn btn-sm btn-outline-danger fw-bold">
-                                    <i class="bi bi-trash-fill"></i> Excluir
-                                </a>
+                                <form action="{{ url_for('deletar_categoria', id=categoria.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta categoria?');">
+                                    <button type="submit" class="btn btn-sm btn-light rounded-circle text-danger" title="Excluir">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="3" class="text-center text-white py-5">
-                                <i class="bi bi-tags text-muted display-5 d-block mb-3"></i>
-                                <span class="fs-5 fw-semibold">Nenhuma categoria encontrada.</span>
+                            <td colspan="3" class="text-center py-5 text-muted">
+                                <i class="bi bi-tags display-6 d-block mb-3 opacity-25"></i>
+                                <span>Nenhuma categoria encontrada.</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -58,46 +60,7 @@
 </div>
 
 <style>
-    /* Moldura externa do cartão em preto/escuro sólido */
-    .custom-card {
-        background-color: #1a1d20 !important;
-        border: 1px solid #343a40 !important;
-        border-radius: 10px !important;
-    }
-
-    /* Topo do cartão com tonalidade ligeiramente diferenciada para profundidade */
-    .custom-card-header {
-        background-color: #2b3035 !important;
-        border-bottom: 1px solid #343a40 !important;
-    }
-
-    /* Cabeçalhos (th) - Fundo Preto Sólido, Letras Brancas Fortes e Borda Inferior Marcante */
-    .custom-table th {
-        color: #ffffff !important;
-        background-color: #1a1d20 !important;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 800;
-        border-bottom: 3px solid #495057 !important;
-    }
-
-    /* Linhas de dados (tr) - Mesma cor de fundo do cabeçalho th para simetria visual absoluta */
-    .custom-table tbody tr {
-        background-color: #1a1d20 !important; 
-        border-bottom: 1px solid #343a40 !important; /* Divisória horizontal nítida entre registros */
-    }
-
-    /* Células de dados (td) - Forçadas a adotarem o mesmo fundo escuro, texto branco e negrito dos th */
-    .custom-table tbody td {
-        background-color: #1a1d20 !important;
-        color: #ffffff !important;
-        font-weight: 800 !important; 
-    }
-
-    /* Efeito Interativo (Hover): Realça suavemente a linha focada pelo mouse mantendo o tema escuro */
-    .custom-table tbody tr:hover {
-        background-color: #25292e !important;
-    }
+    .table thead th { border-bottom: 1px solid #edf2f7; }
+    .table tbody td { border-bottom: 1px solid #edf2f7; color: #4a5568; }
 </style>
 {% endblock %}

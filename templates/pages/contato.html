@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Contato - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-envelope text-blue-600"></i> Contato
+        </h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+                <p class="text-gray-600 mb-8 font-medium">Estamos aqui para ajudar. Escolha a melhor forma de falar conosco.</p>
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Telefone</p>
+                            <p class="text-gray-900 font-bold">(87) 3762-0000</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-envelope"></i></div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">E-mail</p>
+                            <p class="text-gray-900 font-bold">suporte@conectandoservicos.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form class="space-y-4">
+                <input type="text" placeholder="Seu Nome" class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                <input type="email" placeholder="Seu E-mail" class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                <textarea rows="4" placeholder="Como podemos ajudar?" class="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition resize-none"></textarea>
+                <button type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition">Enviar Mensagem</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

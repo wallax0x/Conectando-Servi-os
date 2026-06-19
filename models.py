@@ -20,6 +20,9 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     user_type = db.Column(db.String(20), default='client')  # client / professional
 
+    # Foto de Perfil
+    profile_image = db.Column(db.Text)  # Base64
+
     # Endereço
     cep = db.Column(db.String(9))
     address = db.Column(db.String(200))
@@ -107,6 +110,7 @@ class Professional(db.Model):
     services_offered = db.Column(db.Text)                # JSON
     tags = db.Column(db.String(255))                     
     availability = db.Column(db.String(255))             
+    service_range = db.Column(db.String(255))
 
     verified = db.Column(db.Boolean, default=False)
     response_time = db.Column(db.String(50), default="24 horas (estimado)")

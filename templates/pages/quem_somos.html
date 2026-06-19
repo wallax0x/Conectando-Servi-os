@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Quem Somos - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-users text-blue-600"></i> Quem Somos
+        </h1>
+        <div class="prose prose-blue max-w-none text-gray-600 space-y-6 leading-relaxed">
+            <p class="text-xl text-gray-800 font-medium">A missão do Conectando Serviços é simplificar a forma como você encontra e contrata profissionais de confiança.</p>
+            
+            <p>Nascemos da necessidade de conectar pessoas que precisam de soluções rápidas em suas casas ou empresas com profissionais qualificados que buscam aumentar sua visibilidade e gerenciar seus negócios de forma profissional.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900 pt-4">Nossos Valores</h2>
+            <ul class="list-disc pl-6 space-y-2">
+                <li><strong>Transparência:</strong> Avaliações reais e comunicação direta.</li>
+                <li><strong>Segurança:</strong> Verificação de profissionais e ambiente seguro.</li>
+                <li><strong>Inovação:</strong> Tecnologia SaaS para facilitar a gestão de serviços.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

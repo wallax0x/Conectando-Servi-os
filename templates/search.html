@@ -1,26 +1,30 @@
-{% extends "base_dashboard.html" %}
+{% extends "base.html" %}
 
 {% block title %}Buscar Profissionais - Conectando Serviços{% endblock %}
 
-{% block content %}
-<style>
-    .search-card { border-radius: 15px; transition: transform 0.2s; border: none; }
-    .search-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-    .prof-icon { font-size: 3rem; color: #0d6efd; margin-bottom: 15px; }
-    .filter-container { background: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
-</style>
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
 
-<section class="section mt-4">
-    <div class="container">
-        <h2 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i>Encontre o Profissional Ideal</h2>
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Cabeçalho -->
+        <div class="mb-8 text-center md:text-left">
+            <h2 class="text-3xl font-bold text-gray-900 flex items-center justify-center md:justify-start gap-3">
+                <i class="fas fa-search text-blue-600"></i> Encontre o Profissional Ideal
+            </h2>
+            <p class="text-gray-500 mt-2">Filtre por categoria para encontrar os melhores prestadores em sua região.</p>
+        </div>
         
         <!-- Filtros de Busca -->
-        <div class="filter-container shadow-sm">
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-10">
             <form action="{{ url_for('search') }}" method="get">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-8">
-                        <label class="form-label fw-bold small text-uppercase">Filtrar por Categoria</label>
-                        <select name="category" class="form-select form-select-lg">
+                <div class="flex flex-col md:flex-row items-end gap-4">
+                    <div class="w-full md:flex-1">
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Filtrar por Categoria</label>
+                        <select name="category" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block p-3.5 outline-none transition">
                             <option value="">Todas as Categorias</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}" {% if request.args.get('category') == category.id|string %}selected{% endif %}>
@@ -29,9 +33,9 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
-                            <i class="fas fa-filter me-2"></i>Aplicar Filtro
+                    <div class="w-full md:w-auto">
+                        <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-10 rounded-2xl shadow-lg shadow-blue-200 transition duration-300 flex items-center justify-center gap-2">
+                            <i class="fas fa-filter"></i> Aplicar Filtro
                         </button>
                     </div>
                 </div>
@@ -40,52 +44,62 @@
 
         <!-- Grid de Profissionais -->
         {% if professionals %}
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {% for prof in professionals %}
-                <div class="col">
-                    <div class="card h-100 search-card shadow-sm">
-                        <div class="card-body text-center p-4">
-                            <div class="prof-icon">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <h5 class="card-title fw-bold mb-1">{{ prof.user.name }}</h5>
-                            <p class="text-primary small mb-3"><i class="fas fa-briefcase me-1"></i>{{ prof.category.name }}</p>
-                            
-                            <div class="rating mb-3">
-                                {% for i in range(5) %}
-                                    {% if i < prof.average_rating %}
-                                        <i class="fas fa-star text-warning"></i>
-                                    {% else %}
-                                        <i class="far fa-star text-muted"></i>
-                                    {% endif %}
-                                {% endfor %}
-                                <span class="ms-1 small">({{ prof.review_count }})</span>
-                            </div>
-
-                            <p class="text-muted small mb-3">
-                                <i class="fas fa-map-marker-alt me-1"></i>{{ prof.user.city }}, {{ prof.user.state }}
-                            </p>
-
-                            {% if prof.starting_price %}
-                                <p class="fw-bold text-dark mb-0">A partir de R$ {{ "%.2f"|format(prof.starting_price | default(0)) }}</p>
-                            {% endif %}
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col transition duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div class="p-8 text-center flex-1">
+                        <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-6">
+                            <i class="fas fa-user-circle"></i>
                         </div>
-                        <div class="card-footer bg-transparent border-0 p-4 pt-0">
-                            <a href="{{ url_for('professional_profile', professional_id=prof.id) }}" class="btn btn-outline-primary w-100 rounded-pill fw-bold">
-                                Ver Perfil Completo
-                            </a>
+                        
+                        <h5 class="text-xl font-bold text-gray-900 mb-1">{{ prof.user.name }}</h5>
+                        <p class="text-blue-600 font-semibold text-sm mb-4 bg-blue-50 inline-block px-4 py-1 rounded-full">
+                            {{ prof.category.name }}
+                        </p>
+                        
+                        <div class="flex items-center justify-center gap-1 mb-4">
+                            {% for i in range(5) %}
+                                {% if i < prof.average_rating %}
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                {% else %}
+                                    <i class="far fa-star text-gray-300 text-sm"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-gray-400 text-xs font-medium ml-1">({{ prof.review_count }})</span>
                         </div>
+
+                        <p class="text-gray-500 text-sm flex items-center justify-center gap-2 mb-6">
+                            <i class="fas fa-map-marker-alt text-gray-300"></i>{{ prof.user.city }}, {{ prof.user.state }}
+                        </p>
+
+                        {% if prof.starting_price %}
+                            <div class="border-t border-gray-50 pt-4">
+                                <span class="text-gray-400 text-xs block mb-1">A partir de</span>
+                                <span class="text-2xl font-bold text-gray-900">R$ {{ "%.2f"|format(prof.starting_price | default(0)) }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-6 bg-gray-50/50 border-t border-gray-50">
+                        <a href="{{ url_for('professional_profile', professional_id=prof.id) }}" class="block w-full text-center bg-white border border-gray-200 hover:border-blue-600 hover:text-blue-600 text-gray-700 font-bold py-3 rounded-2xl transition duration-300 shadow-sm">
+                            Ver Perfil Completo
+                        </a>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-5 bg-white rounded shadow-sm">
-                <i class="fas fa-search fa-4x text-muted opacity-25 mb-3"></i>
-                <h3>Nenhum profissional encontrado</h3>
-                <p class="text-muted">Tente ajustar seus filtros para encontrar outros prestadores.</p>
+            <div class="bg-white rounded-3xl p-16 text-center shadow-sm border border-gray-100">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 text-gray-300 mb-6 text-4xl">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Nenhum profissional encontrado</h3>
+                <p class="text-gray-500 mt-2 max-w-md mx-auto">Não encontramos prestadores para os critérios selecionados. Tente ajustar seus filtros para encontrar outros profissionais.</p>
+                <a href="{{ url_for('search') }}" class="inline-block mt-8 text-blue-600 font-bold hover:underline">
+                    Ver todos os profissionais
+                </a>
             </div>
         {% endif %}
     </div>
-</section>
+</div>
 {% endblock %}

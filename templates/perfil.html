@@ -1,92 +1,182 @@
-{% extends "base_dashboard.html" %}
+{% extends "base.html" %}
 
-{% block title %}Perfil - Conectando Serviços{% endblock %}
+{% block title %}Meu Perfil - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <div class="auth-container">
-            <div class="auth-card profile-card">
-                <h2 class="mb-3">Meu Perfil</h2>
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Meu Perfil</h1>
+                <p class="text-gray-500 mt-1">Gerencie suas informações pessoais e de conta.</p>
+            </div>
+            <a href="{{ url_for('editar_perfil') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition duration-300 flex items-center gap-2">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        </div>
 
-                <div class="profile-info mb-4">
-                    <div class="info-row"><strong>Nome:</strong> {{ current_user.name }}</div>
-                    <div class="info-row"><strong>Email:</strong> {{ current_user.email }}</div>
-                    <div class="info-row"><strong>CPF:</strong> {{ current_user.cpf }}</div>
-                    <div class="info-row"><strong>Telefone:</strong> {{ current_user.phone or '-' }}</div>
-                    <div class="info-row"><strong>Endereço:</strong> {{ current_user.address }}, {{
-                        current_user.neighborhood }} - {{ current_user.city }}/{{ current_user.state }}</div>
-                    <div class="info-row"><strong>CEP:</strong> {{ current_user.cep }}</div>
-                    <div class="info-row"><strong>Tipo de conta:</strong> {{ current_user.user_type|capitalize }}</div>
+        <!-- Info Card -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div class="p-8">
+                <div class="flex items-center gap-6 mb-8 pb-8 border-b border-gray-100">
+                    <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl font-bold">
+                        {{ current_user.name[0] | upper }}
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">{{ current_user.name }}</h2>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
+                            {% if current_user.user_type == 'professional' %} bg-green-100 text-green-700 {% else %} bg-blue-100 text-blue-700 {% endif %}">
+                            {{ current_user.user_type | replace('professional', 'Profissional') | replace('client', 'Cliente') }}
+                        </span>
+                    </div>
                 </div>
 
-                <hr>
-                
-                <div class="auth-footer mt-4 text-center">
-                    <a href="{{ url_for('dashboard') }}" class="btn-secondary">Voltar para o dashboard</a>
-                </div>
-
-                <div class="danger-zone mt-5 p-3 border border-danger rounded" style="background-color: #fff5f5;">
-                    <h5 class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Zona de Perigo</h5>
-                    <p class="text-muted small mb-3">Atenção: A exclusão da conta é permanente e apagará todo o seu histórico de serviços e mensagens.</p>
-                    <form method="POST" action="{{ url_for('excluir_proprio_usuario') }}"
-                        onsubmit="return confirm('Tem certeza que deseja excluir sua conta? Esta ação é irreversível e apagará todos os seus dados.')">
-                        <button type="submit" class="btn btn-danger w-100 py-2">
-                            Excluir Minha Conta Permanentemente
-                        </button>
-                    </form>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">E-mail</span>
+                        <p class="text-gray-900 font-medium">{{ current_user.email }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">CPF</span>
+                        <p class="text-gray-900 font-medium">{{ current_user.cpf }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Telefone</span>
+                        <p class="text-gray-900 font-medium">{{ current_user.phone or 'Não informado' }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">CEP</span>
+                        <p class="text-gray-900 font-medium">{{ current_user.cep or 'Não informado' }}</p>
+                    </div>
+                    <div class="md:col-span-2 space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Endereço</span>
+                        <p class="text-gray-900 font-medium">
+                            {% if current_user.address %}
+                                {{ current_user.address }}, {{ current_user.neighborhood }}<br>
+                                {{ current_user.city }} - {{ current_user.state }}
+                            {% else %}
+                                Não informado
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        {% if prof %}
+        <!-- Professional Info Card -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-briefcase text-blue-600"></i> Dados Profissionais
+                </h3>
+            </div>
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Categoria</span>
+                        <p class="text-gray-900 font-medium">{{ prof.category.name }}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Experiência</span>
+                        <p class="text-gray-900 font-medium">{{ prof.experience_years or 0 }} anos</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Preço Inicial</span>
+                        <p class="text-gray-900 font-medium">R$ {{ "%.2f"|format(prof.starting_price or 0) }}</p>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Biografia</span>
+                    <p class="text-gray-700 text-sm leading-relaxed">{{ prof.bio or 'Nenhuma biografia informada.' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Danger Zone -->
+        <div class="bg-red-50 rounded-3xl border border-red-100 overflow-hidden">
+            <div class="p-8">
+                <div class="flex items-center gap-3 text-red-600 mb-4">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <h3 class="text-lg font-bold">Zona de Perigo</h3>
+                </div>
+                <p class="text-red-700/70 text-sm mb-6 leading-relaxed">
+                    Ao excluir sua conta, todos os seus dados, histórico de serviços e mensagens serão removidos permanentemente. Esta ação não pode ser desfeita.
+                </p>
+                <form action="{{ url_for('excluir_proprio_usuario') }}" method="POST" 
+                    onsubmit="return confirm('ATENÇÃO: Você tem certeza absoluta que deseja excluir sua conta permanentemente? Todos os seus dados serão apagados.')">
+                    <button type="submit" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-2xl transition duration-300 shadow-lg shadow-red-200">
+                        Excluir Minha Conta Permanentemente
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="{{ url_for('dashboard') }}" class="text-gray-400 hover:text-gray-600 transition font-medium flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </div>
+
+        <!-- SEÇÃO: MINHAS AVALIAÇÕES -->
+        {% if current_user.user_type == 'client' %}
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <i class="fas fa-star text-yellow-400"></i> Avaliações que eu fiz
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for avaliacao in minhas_avaliacoes %}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition hover:shadow-md">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-bold text-gray-900 leading-tight">Profissional: {{ avaliacao.professional.user.name }}</h4>
+                            <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-full mt-1 inline-block">
+                                {{ avaliacao.professional.category.name }}
+                            </span>
+                        </div>
+                        <!-- Renderização das Estrelas dinâmicas -->
+                        <div class="flex text-yellow-400 text-sm">
+                            {% for i in range(avaliacao.rating) %}
+                                <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - avaliacao.rating) %}
+                                <i class="far fa-star text-gray-300"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 text-sm italic mt-3 bg-gray-50 p-4 rounded-xl border border-gray-100 leading-relaxed">
+                        "{{ avaliacao.comment }}"
+                    </p>
+                    
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">{{ avaliacao.service_request.title or 'Serviço s/ título' }}</span>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">
+                            Avaliador em: {{ avaliacao.created_at.strftime('%d/%m/%Y') }}
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Estado Vazio -->
+                <div class="col-span-1 md:col-span-2 bg-gray-50 rounded-2xl p-12 text-center border border-dashed border-gray-200">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-2xl text-gray-300">
+                        <i class="far fa-comment-dots"></i>
+                    </div>
+                    <h3 class="text-gray-900 font-bold">Você ainda não avaliou nenhum profissional.</h3>
+                    <p class="text-gray-500 text-sm mt-1">Quando seus serviços forem concluídos, suas avaliações aparecerão aqui.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-</section>
-
-<style>
-    .profile-card {
-        max-width: 500px;
-        margin: auto;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .profile-info .info-row {
-        padding: 8px 0;
-        font-size: 16px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .profile-info .info-row:last-child {
-        border-bottom: none;
-    }
-
-    .btn-danger {
-        background-color: #e74c3c;
-        color: #fff;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .btn-danger:hover {
-        background-color: #c0392b;
-    }
-
-    .btn-secondary {
-        display: inline-block;
-        background-color: #bdc3c7;
-        color: #2c3e50;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: background 0.3s;
-    }
-
-    .btn-secondary:hover {
-        background-color: #95a5a6;
-    }
-</style>
+</div>
 {% endblock %}

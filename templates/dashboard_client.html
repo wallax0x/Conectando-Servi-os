@@ -1,199 +1,324 @@
-{% extends "base_dashboard.html" %}
+{% extends "base.html" %}
 
-{% block title %}Meu Painel - Conectando Serviços{% endblock %}
+{% block title %}Meu Dashboard - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    
+    .hover-card-effect { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .hover-card-effect:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+    .hover-card-effect:hover .icon-box-anim { transform: scale(1.1) rotate(5deg); }
+</style>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* Estilos Customizados para o Dashboard */
-    .dashboard-container {
-        max-width: 1000px;
-        margin: 20px auto;
-    }
-    .request-card {
-        border-radius: 12px;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .request-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-    }
-    .status-badge {
-        font-weight: 600;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-    }
-    .info-label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-    }
-    .info-value {
-        color: #6c757d;
-        font-size: 0.95rem;
-    }
-    .description-box {
-        background-color: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        border-left: 4px solid #0d6efd;
-    }
-    .card-footer {
-        border-top: 1px solid #f0f0f0;
-    }
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-        background: white;
-        border-radius: 15px;
-    }
-</style>
+<!-- Início do Conteúdo do Dashboard -->
+<div class="bg-gray-50 min-h-screen pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Cabeçalho e Botão -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4 animate-fade-in">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Olá, {{ current_user.name }}! 👋</h1>
+                <p class="text-gray-500 mt-1 font-medium">Bem-vindo de volta ao seu painel de solicitações.</p>
+            </div>
+            <a href="{{ url_for('search') }}" class="group bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-blue-200 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
+                <i class="fas fa-search group-hover:rotate-12 transition-transform"></i> Buscar Profissionais
+            </a>
+        </div>
 
-<div class="container dashboard-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">Minhas Solicitações</h2>
-        <a href="{{ url_for('search') }}" class="btn btn-primary rounded-pill px-4">
-            <i class="fas fa-plus me-2"></i>Nova Solicitação
-        </a>
-    </div>
+        <!-- Cards de Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Card Pendentes -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-100 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-orange-400 to-orange-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-orange-100 transition-transform duration-300 relative z-10">
+                    <i class="far fa-clock"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_pendentes }}">{{ total_pendentes }}</h3>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Pendentes</p>
+                </div>
+            </div>
 
-    {% if requests %}
-        <div class="row">
-            {% for req in requests %}
-            <div class="col-12 mb-4">
-                <div class="card request-card shadow-sm border-0">
-                    <!-- CABEÇALHO DO CARD -->
-                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                        <h4 class="fw-bold mb-0 text-dark">{{ req.title or 'Serviço Sem Título' }}</h4>
-                        
-                        {# Badge de Status Dinâmico #}
-                        <span class="status-badge 
-                            {% if req.status == 'concluido' or req.status == 'completed' %} bg-success text-white
-                            {% elif req.status == 'aceito' %} bg-info text-white
-                            {% elif req.status == 'CANCELADO' %} bg-danger text-white
-                            {% else %} bg-warning text-dark {% endif %}">
-                            
-                            <i class="fas 
-                                {% if req.status == 'concluido' or req.status == 'completed' %} fa-check-circle
-                                {% elif req.status == 'aceito' %} fa-handshake
-                                {% elif req.status == 'CANCELADO' %} fa-ban
-                                {% else %} fa-clock {% endif %} me-1"></i>
-                            
-                            {% if req.status == 'pending' %}Pendente
-                            {% elif req.status == 'accepted' %}Aceito
-                            {% elif req.status == 'rejected' %}Recusado
-                            {% elif req.status == 'completed' or req.status == 'concluido' %}Concluído
-                            {% elif req.status == 'CANCELADO' %}Cancelado
-                            {% elif req.status == 'orcamento_enviado' %}Orçamento Recebido
-                            {% else %}{{ req.status | capitalize }}{% endif %}
-                        </span>
+            <!-- Card Concluídos -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-200 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-green-400 to-green-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-green-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_concluidos }}">{{ total_concluidos }}</h3>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Concluídos</p>
+                </div>
+            </div>
+
+            <!-- Card Total Investido -->
+            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-300 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
+                <div class="icon-box-anim bg-gradient-to-br from-blue-500 to-indigo-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-blue-100 transition-transform duration-300 relative z-10">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-gray-400 font-bold text-sm">R$</span>
+                        <h3 class="text-3xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_investido }}" data-decimals="2">R$ {{ "%.2f"|format(total_investido) }}</h3>
                     </div>
+                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Total Investido</p>
+                </div>
+            </div>
+        </div>
 
-                    <!-- CORPO DO CARD -->
-                    <div class="card-body px-4 pb-4">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <p class="mb-2">
-                                    <span class="info-label"><i class="fas fa-user-tie text-primary me-2"></i>Profissional:</span><br>
-                                    <a href="{{ url_for('professional_profile', professional_id=req.professional.id) }}" class="text-decoration-none fw-bold">
-                                        {{ req.professional.user.name }}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Solicitações Recentes -->
+            <div class="lg:col-span-2 mb-8 animate-fade-in delay-300">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
+                    Solicitações Recentes
+                </h2>
+                
+                {% if requests %}
+                    <div class="space-y-4">
+                        {% for req in requests %}
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-xl hover:border-blue-100 group">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-blue-50 text-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                    {{ req.professional.user.name[0] | upper }}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-900 text-lg">{{ req.professional.user.name }}</h4>
+                                    <p class="text-blue-500 text-sm font-semibold">{{ req.professional.category.name }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col md:items-center">
+                                <span class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Valor</span>
+                                <span class="font-black text-gray-900 text-lg">R$ {{ "%.2f"|format(req.final_price or req.budget or 0) }}</span>
+                            </div>
+
+                            <div>
+                                <span class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter
+                                    {% if req.status in ['concluido', 'completed'] %} bg-green-100 text-green-700
+                                    {% elif req.status == 'aceito' %} bg-blue-100 text-blue-700
+                                    {% elif req.status == 'CANCELADO' %} bg-red-100 text-red-700
+                                    {% else %} bg-orange-100 text-orange-700 {% endif %}">
+                                    {{ req.status | replace('_', ' ') | upper }}
+                                </span>
+                            </div>
+
+                            <div class="flex gap-3 justify-end items-center">
+                                {# Chat - Esconder se estiver cancelado #}
+                                {% if req.status != 'CANCELADO' %}
+                                <a href="{{ url_for('chat', request_id=req.id) }}" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Abrir Chat">
+                                    <i class="fas fa-comments text-lg"></i>
+                                </a>
+                                {% endif %}
+                                
+                                <button onclick="abrirModal('modal-detalhe-{{ req.id }}')" class="w-10 h-10 flex items-center justify-center text-gray-400 bg-gray-50 hover:bg-gray-900 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Ver Detalhes">
+                                    <i class="fas fa-eye text-lg"></i>
+                                </button>
+                                
+                                {# Ação de Cancelar - Apenas para pedidos pendentes #}
+                                {% if req.status in ['pendente', 'pending', 'orcamento_enviado'] %}
+                                    <form action="{{ url_for('cancelar_pedido', request_id=req.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar esta solicitação?');" class="inline">
+                                        <button type="submit" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Cancelar Pedido">
+                                            <i class="fas fa-times text-lg"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                {# Ação de Avaliar - Apenas para concluídos e sem review #}
+                                {% if (req.status == 'concluido' or req.status == 'completed') and not req.review %}
+                                    <a href="{{ url_for('avaliar_servico', request_id=req.id) }}" class="w-10 h-10 flex items-center justify-center text-yellow-500 bg-yellow-50 hover:bg-yellow-500 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Avaliar Profissional">
+                                        <i class="fas fa-star text-lg"></i>
                                     </a>
-                                </p>
-                                <p class="mb-2">
-                                    <span class="info-label"><i class="fas fa-tag text-primary me-2"></i>Categoria:</span><br>
-                                    <span class="info-value">{{ req.professional.category.name }}</span>
-                                </p>
-                                {% if req.preferred_date %}
-                                <p class="mb-0">
-                                    <span class="info-label"><i class="fas fa-calendar-alt text-primary me-2"></i>Data Preferencial:</span><br>
-                                    <span class="info-value">{{ req.preferred_date }}</span>
-                                </p>
                                 {% endif %}
                             </div>
-                            
-                            <div class="col-md-6 border-start d-none d-md-block">
-                                <p class="mb-2">
-                                    <span class="info-label"><i class="fas fa-money-bill-wave text-success me-2"></i>Orçamento:</span><br>
-                                    <span class="info-value">
-                                        {% if req.final_price %}
-                                            <strong>R$ {{ "%.2f"|format(req.final_price) }} (Acordado)</strong>
-                                        {% elif req.budget %}
-                                            R$ {{ "%.2f"|format(req.budget | default(0)) }}
-                                        {% else %}
-                                            A combinar
-                                        {% endif %}
-                                    </span>
-                                </p>
-                                <p class="mb-0">
-                                    <span class="info-label"><i class="fas fa-history text-muted me-2"></i>Enviado em:</span><br>
-                                    <span class="info-value small">{{ req.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
-                                </p>
-                            </div>
+                        </div>
 
-                            <div class="col-12">
-                                <div class="description-box mt-2">
-                                    <span class="info-label mb-1 d-block text-dark">Descrição:</span>
-                                    <p class="mb-0 info-value fst-italic">"{{ req.description }}"</p>
+                        <!-- Modal de Detalhes da Solicitação -->
+                        <div id="modal-detalhe-{{ req.id }}" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4 transition-all duration-300">
+                            <div class="bg-white rounded-[2rem] p-8 max-w-lg w-full shadow-2xl animate-fade-in">
+                                <div class="flex justify-between items-center mb-6 border-b border-gray-50 pb-4">
+                                    <h3 class="text-2xl font-black text-gray-900 tracking-tight">Detalhes do Pedido</h3>
+                                    <button onclick="fecharModal('modal-detalhe-{{ req.id }}')" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300">
+                                        <i class="fas fa-times text-xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-5">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Profissional</span>
+                                        <span class="font-bold text-gray-900 bg-blue-50 text-blue-600 px-3 py-1 rounded-lg">{{ req.professional.user.name }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Categoria</span>
+                                        <span class="font-bold text-gray-700">{{ req.professional.category.name }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Status Atual</span>
+                                        <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter
+                                            {% if req.status in ['concluido', 'completed'] %} bg-green-100 text-green-700
+                                            {% elif req.status == 'aceito' %} bg-blue-100 text-blue-700
+                                            {% elif req.status == 'CANCELADO' %} bg-red-100 text-red-700
+                                            {% else %} bg-orange-100 text-orange-700 {% endif %}">
+                                            {{ req.status | replace('_', ' ') | upper }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mt-6 pt-6 border-t border-gray-50">
+                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-3">Descrição Completa</span>
+                                        <div class="bg-gray-50 p-5 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100 italic">
+                                            "{{ req.description or 'Nenhuma descrição fornecida.' }}"
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 flex gap-3">
+                                    <button onclick="fecharModal('modal-detalhe-{{ req.id }}')" class="flex-1 bg-gray-900 hover:bg-black text-white font-bold py-3.5 rounded-2xl transition-all duration-300 shadow-lg shadow-gray-200">
+                                        Entendido
+                                    </button>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
+                {% else %}
+                    <!-- Estado Vazio (Nenhuma solicitação) -->
+                    <div class="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gray-50 text-gray-300 mb-6 text-4xl">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900">Nenhuma solicitação encontrada</h3>
+                        <p class="text-gray-500 mt-2">Você ainda não contratou nenhum serviço. Comece explorando nossos profissionais!</p>
+                    </div>
+                {% endif %}
+            </div>
 
-                    <!-- RODAPÉ DO CARD / AÇÕES -->
-                    <div class="card-footer bg-white p-3 d-flex flex-wrap justify-content-end gap-2 border-0">
-                        {% if req.status != 'CANCELADO' %}
-                            
-                            {# Botão do Chat - Visível em todos os estados não cancelados #}
-                            <a href="{{ url_for('chat', request_id=req.id) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
-                                <i class="fas fa-comments me-1"></i> Abrir Chat
-                            </a>
-
-                            {# Botão de Cancelar - Apenas em estados iniciais #}
-                            {% if req.status in ['pending', 'pendente', 'orcamento_enviado'] %}
-                            <form action="{{ url_for('cancelar_pedido', request_id=req.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar esta solicitação?');">
-                                <button type="submit" class="btn btn-outline-danger rounded-pill px-3 btn-sm">
-                                    <i class="fas fa-ban me-1"></i> Cancelar
-                                </button>
-                            </form>
-                            {% endif %}
-
-                            {# Botão de Avaliar - Apenas quando concluído e sem review #}
-                            {% if req.status == 'concluido' or req.status == 'completed' %}
-                                {% if req.review %}
-                                    <button class="btn btn-success rounded-pill px-3 btn-sm disabled">
-                                        <i class="fas fa-check-circle me-1"></i> ✅ Avaliado
-                                    </button>
-                                {% else %}
-                                    <a href="{{ url_for('avaliar_servico', request_id=req.id) }}" class="btn btn-primary rounded-pill px-3 btn-sm">
-                                        <i class="fas fa-star me-1"></i> Avaliar Profissional
-                                    </a>
-                                {% endif %}
-                            {% endif %}
-
-                        {% else %}
-                            {# Badge visual para pedidos cancelados #}
-                            <div class="mt-1">
-                                <span class="badge bg-danger rounded-pill py-2 px-3">Pedido Cancelado em {{ req.updated_at.strftime('%d/%m/%Y') if req.updated_at else '' }}</span>
-                            </div>
-                        {% endif %}
+            <!-- Seção de Gastos (Gráfico) -->
+            <div class="animate-fade-in delay-300">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
+                    Meus Gastos
+                </h2>
+                {% if total_investido > 0 %}
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover-card-effect">
+                    <div class="h-64">
+                        <canvas id="gastosChart"></canvas>
                     </div>
                 </div>
+                {% else %}
+                <!-- Estado Vazio (Nenhum gasto) -->
+                <div class="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-400 mb-4 text-3xl">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Sem gastos ainda</h3>
+                    <p class="text-gray-500 text-sm mt-1 leading-relaxed">Seus investimentos aparecerão aqui quando os serviços forem concluídos.</p>
+                </div>
+                {% endif %}
             </div>
-            {% endfor %}
         </div>
-    {% else %}
-        <!-- EMPTY STATE -->
-        <div class="empty-state shadow-sm">
-            <div class="mb-4">
-                <i class="fas fa-inbox fa-4x text-muted opacity-25"></i>
-            </div>
-            <h3 class="fw-bold">Nenhuma solicitação ainda</h3>
-            <p class="text-muted">Você ainda não enviou nenhum pedido de orçamento. Que tal começar agora?</p>
-            <a href="{{ url_for('search') }}" class="btn btn-primary rounded-pill px-5 mt-3">
-                Explorar Profissionais
-            </a>
-        </div>
-    {% endif %}
-</div>
 
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- Animação Count-Up ---
+        const counters = document.querySelectorAll('.count-up-val');
+        const speed = 100;
+
+        counters.forEach(counter => {
+            const animate = () => {
+                const value = +counter.getAttribute('data-value');
+                const decimals = +counter.getAttribute('data-decimals') || 0;
+                const data = +counter.innerText;
+                const time = value / speed;
+                
+                if (data < value) {
+                    const nextVal = data + (time > 0.01 ? time : 0.01);
+                    counter.innerText = nextVal.toFixed(decimals);
+                    setTimeout(animate, 10);
+                } else {
+                    counter.innerText = value.toFixed(decimals);
+                }
+            }
+            animate();
+        });
+
+        // --- Gráfico de Gastos ---
+        const canvas = document.getElementById('gastosChart');
+        if (!canvas) return; // Só inicializa se o elemento existir
+
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ spending_labels | tojson }},
+                datasets: [{
+                    label: 'Gasto por Categoria (R$)',
+                    data: {{ spending_values | tojson }},
+                    backgroundColor: '#2563eb',
+                    borderRadius: 8,
+                    barThickness: 30,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' R$ ' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        suggestedMax: 100, // Evita decimais pequenos em eixos vazios/baixos
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            callback: function(value) { return 'R$ ' + value; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+
+    function abrirModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Impede o scroll da página no fundo
+        }
+    }
+    
+    function fecharModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto'; // Devolve o scroll da página
+        }
+    }
+</script>
 {% endblock %}

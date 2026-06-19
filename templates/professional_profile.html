@@ -1,115 +1,192 @@
 {% extends "base.html" %}
 
-{% block title %}{{ professional.user.name }} - ServiçosPro{% endblock %}
+{% block title %}{{ professional.user.name }} - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <div class="profile-layout">
-            <div class="profile-main">
-                <div class="profile-header">
-                    <div class="prof-photo-large">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="profile-info">
-                        <h1>{{ professional.user.name }}</h1>
-                        <p class="category-badge"><i class="fas fa-briefcase"></i> {{ professional.category.name }}</p>
-                        
-                        <div class="rating">
-                            {% for i in range(5) %}
-                                {% if i < professional.average_rating %}
-                                    <i class="fas fa-star"></i>
-                                {% else %}
-                                    <i class="far fa-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                            <span>{{ "%.1f"|format(professional.average_rating | default(0)) }} ({{ professional.review_count }} avaliações)</span>
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Coluna Principal (Esquerda) -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Perfil Header Card -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                        <div class="w-32 h-32 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-5xl font-bold overflow-hidden shadow-lg border-4 border-white shrink-0">
+                            {% if professional.user.profile_image %}
+                                <img src="{{ professional.user.profile_image }}" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ professional.user.name[0] | upper }}
+                            {% endif %}
                         </div>
-                        
-                        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ professional.user.city }}, {{ professional.user.state }}</p>
-                        
-                        {% if professional.verified %}
-                            <span class="badge-verified"><i class="fas fa-check-circle"></i> CPF Verificado</span>
-                        {% endif %}
+                        <div class="text-center md:text-left flex-1">
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
+                                <h1 class="text-3xl font-black text-gray-900">{{ professional.user.name }}</h1>
+                                {% if professional.verified %}
+                                    <span class="bg-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fas fa-check-circle"></i> Verificado
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="text-blue-600 font-bold mb-4 flex items-center justify-center md:justify-start gap-2">
+                                <i class="fas fa-briefcase"></i> {{ professional.category.name }}
+                            </p>
+
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex text-yellow-400">
+                                        {% for i in range(5) %}
+                                            <i class="fas fa-star {{ 'text-gray-200' if i >= professional.average_rating }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="font-bold text-gray-900">{{ "%.1f"|format(professional.average_rating) }}</span>
+                                    <span class="text-gray-400">({{ professional.review_count }} avaliações)</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-500 font-medium">
+                                    <i class="fas fa-map-marker-alt text-red-400"></i>
+                                    {{ professional.user.city }}, {{ professional.user.state }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                {% if professional.bio %}
-                    <div class="profile-section">
-                        <h2>Sobre</h2>
-                        <p>{{ professional.bio }}</p>
+
+                <!-- Bio / Sobre -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-6 bg-blue-600 rounded-full"></span> Sobre o Profissional
+                    </h2>
+                    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ professional.bio or 'Nenhuma descrição informada.' }}</p>
+                    
+                    {% if professional.tags %}
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            {% for tag in professional.tags.split(',') %}
+                                <span class="bg-gray-100 text-gray-600 text-xs font-bold px-4 py-1.5 rounded-xl border border-gray-200">
+                                    #{{ tag.strip() }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Portfólio de Fotos -->
+                {% if professional.get_portfolio_photos() %}
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <span class="w-1.5 h-6 bg-green-600 rounded-full"></span> Portfólio de Trabalhos
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {% for photo in professional.get_portfolio_photos() %}
+                        <div class="aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:scale-[1.02] transition duration-300 cursor-pointer" onclick="openLightbox('{{ photo }}')">
+                            <img src="{{ photo }}" class="w-full h-full object-cover">
+                        </div>
+                        {% endfor %}
                     </div>
+                </div>
                 {% endif %}
-                
-                {% if professional.experience_years %}
-                    <div class="profile-section">
-                        <h2>Experiência</h2>
-                        <p><i class="fas fa-calendar"></i> {{ professional.experience_years }} anos de experiência</p>
-                    </div>
-                {% endif %}
-                
-                <div class="profile-section">
-                    <h2>Avaliações</h2>
+
+                <!-- Avaliações -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                        <span class="w-1.5 h-6 bg-yellow-500 rounded-full"></span> Avaliações dos Clientes
+                    </h2>
+                    
                     {% if reviews %}
-                        <div class="reviews-list">
+                        <div class="space-y-6">
                             {% for review in reviews %}
-                                <div class="review-card">
-                                    <div class="review-header">
-                                        <strong>{{ review.client.name }}</strong>
-                                        <div class="rating">
-                                            {% for i in range(5) %}
-                                                {% if i < review.rating %}
-                                                    <i class="fas fa-star"></i>
-                                                {% else %}
-                                                    <i class="far fa-star"></i>
-                                                {% endif %}
-                                            {% endfor %}
+                            <div class="border-b border-gray-50 last:border-0 pb-6 last:pb-0">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500">
+                                            {{ review.client.name[0] | upper }}
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-gray-900">{{ review.client.name }}</h4>
+                                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ review.created_at.strftime('%d/%m/%Y') }}</p>
                                         </div>
                                     </div>
-                                    {% if review.comment %}
-                                        <p>{{ review.comment }}</p>
-                                    {% endif %}
-                                    <small class="text-muted">{{ review.created_at.strftime('%d/%m/%Y') }}</small>
+                                    <div class="flex text-yellow-400 text-xs">
+                                        {% for i in range(5) %}
+                                            <i class="fas fa-star {{ 'text-gray-200' if i >= review.rating }}"></i>
+                                        {% endfor %}
+                                    </div>
                                 </div>
+                                <p class="text-gray-600 text-sm italic">"{{ review.comment }}"</p>
+                            </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">Ainda não há avaliações</p>
+                        <div class="text-center py-10 text-gray-400">
+                            <i class="far fa-comment-alt text-4xl mb-4 opacity-20"></i>
+                            <p class="font-medium">Nenhuma avaliação ainda.</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
-            
-            <div class="profile-sidebar">
-                <div class="sidebar-card">
+
+            <!-- Coluna Sidebar (Direita) -->
+            <div class="space-y-6">
+                <!-- Card de Ação / Preço -->
+                <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 sticky top-8">
                     {% if professional.starting_price %}
-                        <div class="price-box">
-                            <p class="price-label">A partir de</p>
-                            <p class="price-value">R$ {{ "%.2f"|format(professional.starting_price) }}</p>
+                        <div class="mb-6">
+                            <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Valor do Serviço</span>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="text-gray-400 font-bold text-lg">A partir de</span>
+                                <h3 class="text-3xl font-black text-gray-900">R$ {{ "%.2f"|format(professional.starting_price) }}</h3>
+                            </div>
                         </div>
                     {% endif %}
-                    
-                    {% if professional.response_time %}
-                        <div class="info-item">
-                            <i class="fas fa-clock"></i>
-                            <span>Responde em {{ professional.response_time }}</span>
+
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-600">
+                            <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><i class="fas fa-clock"></i></div>
+                            Responde em {{ professional.response_time or '24 horas' }}
                         </div>
-                    {% endif %}
-                    
-                    {% if current_user.is_authenticated and current_user.user_type == 'client' %}
-                        <a href="{{ url_for('request_service', professional_id=professional.id) }}" class="btn-primary btn-block">
-                            <i class="fas fa-paper-plane"></i> Solicitar Orçamento
-                        </a>
-                        <a href="{{ url_for('review_professional', professional_id=professional.id) }}" class="btn-secondary btn-block">
-                            <i class="fas fa-star"></i> Avaliar
-                        </a>
-                    {% elif not current_user.is_authenticated %}
-                        <a href="{{ url_for('login') }}" class="btn-primary btn-block">
-                            Entrar para Solicitar
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-600">
+                            <div class="w-8 h-8 bg-green-50 text-green-600 rounded-lg flex items-center justify-center"><i class="fas fa-calendar-alt"></i></div>
+                            {{ professional.availability or 'A combinar' }}
+                        </div>
+                        <div class="flex items-center gap-3 text-sm font-medium text-gray-600">
+                            <div class="w-8 h-8 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center"><i class="fas fa-map-marked-alt"></i></div>
+                            Atende em: {{ professional.service_range or 'Garanhuns/PE' }}
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.user_type == 'client' %}
+                            <a href="{{ url_for('request_service', professional_id=professional.id) }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-100 transition duration-300 flex items-center justify-center gap-2 mb-3">
+                                <i class="fas fa-paper-plane"></i> Solicitar Orçamento
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-100 transition duration-300 flex items-center justify-center gap-2">
+                            Entrar para Contratar
                         </a>
                     {% endif %}
                 </div>
             </div>
+
         </div>
     </div>
-</section>
+</div>
+
+<!-- Modal Lightbox (Simples) -->
+<div id="lightbox" class="hidden fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+    <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl">
+</div>
+
+<script>
+    function openLightbox(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').classList.remove('hidden');
+    }
+</script>
 {% endblock %}

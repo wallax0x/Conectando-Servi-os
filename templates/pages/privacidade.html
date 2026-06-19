@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Privacidade - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-shield-alt text-blue-600"></i> Privacidade
+        </h1>
+        <div class="prose prose-blue max-w-none text-gray-600 space-y-6 leading-relaxed">
+            <p>Sua privacidade é nossa prioridade. Esta política descreve como tratamos seus dados.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">Coleta de Dados</h2>
+            <p>Coletamos apenas os dados necessários para o funcionamento da plataforma: nome, CPF, e-mail, telefone e localização aproximada para busca de profissionais.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">Segurança</h2>
+            <p>Utilizamos criptografia para proteger suas senhas e mensagens. Seus dados nunca serão vendidos para terceiros.</p>
+            
+            <h2 class="text-2xl font-bold text-gray-900">Seus Direitos</h2>
+            <p>Você pode solicitar a exclusão total da sua conta e de todos os seus dados a qualquer momento através do seu perfil.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

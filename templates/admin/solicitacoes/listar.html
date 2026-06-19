@@ -1,78 +1,72 @@
 {% extends 'base_dashboard.html' %}
 
-{% block title %}Solicitações de Serviço{% endblock %}
-{% block header %}Gerenciamento de Solicitações{% endblock %}
+{% block title %}Gerenciar Solicitações{% endblock %}
+{% block header %}Histórico de Solicitações{% endblock %}
 
 {% block content %}
 <div class="container-fluid pt-4">
-    <div class="card custom-card border-0 shadow">
-        
-        <div class="card-header custom-card-header d-flex align-items-center py-3">
-            <h3 class="card-title mb-0 fw-bold fs-5 text-white">
-                <i class="bi bi-clipboard-check-fill text-info me-2"></i>
-                Histórico de Solicitações de Serviço
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 px-4 border-bottom-0">
+            <h3 class="card-title mb-0 fw-bold text-dark">
+                <i class="bi bi-clipboard-check-fill text-primary me-2"></i>
+                Lista de Solicitações
             </h3>
         </div>
-        
+
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table custom-table mb-0 align-middle">
-                    <thead>
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th class="ps-4 py-3">ID</th>
-                            <th class="py-3">Cliente</th>
-                            <th class="py-3">Profissional / Serviço</th>
-                            <th class="py-3">Preço/Valor</th>
-                            <th class="py-3">Data do Pedido</th>
-                            <th class="pe-4 py-3 text-end" style="width: 180px;">Status</th>
+                            <th class="ps-4 py-3 text-muted small text-uppercase fw-bold">ID</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold">Cliente</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold">Profissional</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold text-center">Valor</th>
+                            <th class="py-3 text-muted small text-uppercase fw-bold text-center">Status</th>
+                            <th class="pe-4 py-3 text-muted small text-uppercase fw-bold text-end">Data</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for solicitacao in solicitacoes %}
                         <tr>
-                            <td class="ps-4 font-monospace fw-bold text-warning">#{{ solicitacao.id }}</td>
-                            
+                            <td class="ps-4 small text-muted">#{{ solicitacao.id }}</td>
                             <td>
-                                <span class="fw-bold text-white fs-6">{{ solicitacao.client.name if solicitacao.client else 'Cliente Removido' }}</span>
+                                <span class="fw-bold text-dark">{{ solicitacao.client.name if solicitacao.client else 'Removido' }}</span>
                             </td>
-                            
-                            <td class="text-white fw-bold">
-                                {{ solicitacao.professional.user.name if solicitacao.professional and solicitacao.professional.user else 'Profissional Desconhecido' }}
+                            <td>
+                                <span class="text-muted">{{ solicitacao.professional.user.name if solicitacao.professional and solicitacao.professional.user else 'N/A' }}</span>
                             </td>
-                            
-                            <td class="text-white fw-bold">
-                                <span class="text-success">R$</span> {{ "%.2f"|format(solicitacao.price) if solicitacao.price else 'A combinar' }}
-                            </td>
-                            
-                            <td class="text-white fw-bold">
-                                {{ solicitacao.created_at.strftime('%d/%m/%Y %H:%M') if solicitacao.created_at else '-' }}
-                            </td>
-                            
-                            <td class="pe-4 text-end">
-                                {% if solicitacao.status == 'completed' or solicitacao.status == 'concluido' %}
-                                <span class="badge badge-custom bg-success text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Concluído
+                            <td class="text-center">
+                                <span class="fw-bold text-dark">
+                                    {% if solicitacao.final_price %}
+                                        R$ {{ "%.2f"|format(solicitacao.final_price) }}
+                                    {% elif solicitacao.budget %}
+                                        R$ {{ "%.2f"|format(solicitacao.budget) }} (Sug.)
+                                    {% else %}
+                                        -
+                                    {% endif %}
                                 </span>
-                                {% elif solicitacao.status == 'pending' or solicitacao.status == 'pendente' %}
-                                <span class="badge badge-custom bg-warning text-dark px-3 py-2 rounded-pill fw-bold border border-dark border-opacity-10">
-                                    <i class="bi bi-hourglass-split me-1"></i> Pendente
-                                </span>
-                                {% elif solicitacao.status == 'canceled' or solicitacao.status == 'cancelado' %}
-                                <span class="badge badge-custom bg-danger text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
-                                    <i class="bi bi-x-circle-fill me-1"></i> Cancelado
-                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if solicitacao.status in ['completed', 'concluido'] %}
+                                <span class="badge bg-soft-success text-success px-3 py-2 rounded-pill">Concluído</span>
+                                {% elif solicitacao.status in ['pending', 'pendente'] %}
+                                <span class="badge bg-soft-warning text-warning px-3 py-2 rounded-pill">Pendente</span>
+                                {% elif solicitacao.status == 'CANCELADO' %}
+                                <span class="badge bg-soft-danger text-danger px-3 py-2 rounded-pill">Cancelado</span>
                                 {% else %}
-                                <span class="badge badge-custom bg-info text-white px-3 py-2 rounded-pill border border-light border-opacity-25">
-                                    <i class="bi bi-gear-fill me-1"></i> Em Andamento
-                                </span>
+                                <span class="badge bg-soft-info text-info px-3 py-2 rounded-pill">Em Andamento</span>
                                 {% endif %}
+                            </td>
+                            <td class="pe-4 text-end small text-muted">
+                                {{ solicitacao.created_at.strftime('%d/%m/%Y') if solicitacao.created_at else '-' }}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center text-white py-5">
-                                <i class="bi bi-clipboard text-muted display-5 d-block mb-3"></i>
-                                <span class="fs-5 fw-semibold">Nenhuma solicitação de serviço realizada ainda.</span>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-clipboard display-6 d-block mb-3 opacity-25"></i>
+                                <span>Nenhuma solicitação encontrada.</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -84,54 +78,11 @@
 </div>
 
 <style>
-    /* Moldura externa do cartão em preto/escuro sólido */
-    .custom-card {
-        background-color: #1a1d20 !important;
-        border: 1px solid #343a40 !important;
-        border-radius: 10px !important;
-    }
-
-    /* Topo do cartão com tonalidade ligeiramente diferenciada para profundidade */
-    .custom-card-header {
-        background-color: #2b3035 !important;
-        border-bottom: 1px solid #343a40 !important;
-    }
-
-    /* Cabeçalhos (th) - Fundo Preto Sólido, Letras Brancas Fortes e Borda Inferior Marcante */
-    .custom-table th {
-        color: #ffffff !important;
-        background-color: #1a1d20 !important;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 800;
-        border-bottom: 3px solid #495057 !important;
-    }
-
-    /* Linhas de dados (tr) - Mesma cor de fundo do cabeçalho th para simetria visual absoluta */
-    .custom-table tbody tr {
-        background-color: #1a1d20 !important; 
-        border-bottom: 1px solid #343a40 !important; /* Divisória horizontal nítida entre registros */
-    }
-
-    /* Células de dados (td) - Forçadas a adotarem o mesmo fundo escuro, texto branco e negrito dos th */
-    .custom-table tbody td {
-        background-color: #1a1d20 !important;
-        color: #ffffff !important;
-        font-weight: 800 !important; 
-    }
-
-    /* Efeito Interativo (Hover): Realça suavemente a linha focada pelo mouse mantendo o tema escuro */
-    .custom-table tbody tr:hover {
-        background-color: #25292e !important;
-    }
-
-    /* Estilo customizado com sombra e espaçamento dos Badges identificadores de status */
-    .badge-custom {
-        font-size: 0.8rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
+    .bg-soft-success { background-color: rgba(16, 185, 129, 0.1); }
+    .bg-soft-danger { background-color: rgba(239, 68, 68, 0.1); }
+    .bg-soft-warning { background-color: rgba(245, 158, 11, 0.1); }
+    .bg-soft-info { background-color: rgba(59, 130, 246, 0.1); }
+    .table thead th { border-bottom: 1px solid #edf2f7; }
+    .table tbody td { border-bottom: 1px solid #edf2f7; color: #4a5568; }
 </style>
 {% endblock %}
