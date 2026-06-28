@@ -98,6 +98,23 @@ def read_notification(notif_id):
     return redirect(url_for('dashboard'))
 
 
+@app.route('/notificacoes/marcar-lidas', methods=['POST'])
+@login_required
+def marcar_notificacoes_lidas():
+    try:
+        notificacoes_pendentes = Notification.query.filter_by(user_id=current_user.id, is_read=False).all()
+        
+        for notificacao in notificacoes_pendentes:
+            notificacao.is_read = True
+            
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Notificações atualizadas'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 
 # ---------- CPF validator ----------
 cpf_validator = CPF()

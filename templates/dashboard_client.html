@@ -120,8 +120,10 @@
                 {% for s in solicitacoes[:4] %} <!-- Mostra apenas as 4 mais recentes -->
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center font-bold">
-                            <i class="fas fa-user-alt"></i>
+                        <div class="flex-shrink-0">
+                            <img src="{% if s.professional and s.professional.profile_photo %}{% if s.professional.profile_photo.startswith('data:') %}{{ s.professional.profile_photo }}{% else %}{{ url_for('static', filename='uploads/' + s.professional.profile_photo) }}{% endif %}{% elif s.professional and s.professional.user and s.professional.user.profile_image %}{% if s.professional.user.profile_image.startswith('data:') %}{{ s.professional.user.profile_image }}{% else %}{{ url_for('static', filename='uploads/' + s.professional.user.profile_image) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ s.professional.user.name if s.professional and s.professional.user else 'Profissional' }}&background=e0f2fe&color=0369a1{% endif %}" 
+                                 alt="Foto do profissional" 
+                                 class="w-10 h-10 rounded-lg object-cover shadow-sm border border-gray-100">
                         </div>
                         <div>
                             <h4 class="font-bold text-sm text-gray-900 truncate w-32">{{ s.professional.user.name if s.professional else 'Aguardando' }}</h4>
@@ -213,15 +215,23 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: { display: false }
             },
+            layout: {
+                padding: { top: 20 }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
                     grid: { color: '#f3f4f6' },
-                    border: { display: false }
+                    border: { display: false },
+                    grace: '5%'
                 },
                 x: {
                     grid: { display: false },
-                    border: { display: false }
+                    border: { display: false },
+                    ticks: {
+                        font: { size: 11, weight: 'bold' },
+                        color: '#6b7280'
+                    }
                 }
             }
         }

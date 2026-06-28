@@ -9,6 +9,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
+    <script>
+        // Verifica o localStorage ANTES de renderizar a página para evitar flash
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 <style>
     .btn-primary:hover {
@@ -17,8 +32,8 @@
     }
 </style>
 
-<body>
-    <nav class="navbar">
+<body class="bg-gray-50 text-gray-900 transition-colors duration-300">
+    <nav class="navbar bg-white shadow-sm border-b border-gray-100">
         <div class="container nav-container">
             <a href="{{ url_for('index') }}" class="logo">
                 <i class="fas fa-handshake"></i>Conectando Serviços
@@ -48,7 +63,7 @@
                     <button onclick="var drop = document.getElementById('meu-dropdown'); drop.style.display = drop.style.display === 'none' ? 'block' : 'none';" style="background: none; border: none; cursor: pointer; position: relative; padding: 5px; display: flex; align-items: center;">
                         <i class="fas fa-bell" style="font-size: 22px; color: #4b5563;"></i>
                         {% if unread_notifications_count and unread_notifications_count > 0 %}
-                        <span style="position: absolute; top: -2px; right: -2px; background-color: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; border: 2px solid white;">
+                        <span id="badge-notificacao" style="position: absolute; top: -2px; right: -2px; background-color: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px; font-weight: bold; border: 2px solid white;">
                             {{ unread_notifications_count }}
                         </span>
                         {% endif %}
@@ -56,15 +71,23 @@
 
                     <!-- Dropdown Flutuante -->
                     <div id="meu-dropdown" style="display: none; position: absolute; right: 0; top: 45px; width: 320px; background: white; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 99999;">
+                        <audio id="som-notificacao" preload="auto">
+                            <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+                        </audio>
                         <div style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border-radius: 12px 12px 0 0;">
                             <strong style="margin:0; font-size: 14px; color: #111827;">Notificações</strong>
-                            <button type="button" onclick="document.getElementById('meu-dropdown').style.display = 'none'" style="background: none; border: none; cursor: pointer; color: #6b7280; font-size: 12px;">✖ Fechar</button>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button onclick="marcarTodasComoLidas()" id="btn-ler-todas" style="color: #2563eb; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; border: 0;">
+                                    Marcar como lidas <i class="fas fa-check-double" style="margin-left: 4px;"></i>
+                                </button>
+                                <button type="button" onclick="document.getElementById('meu-dropdown').style.display = 'none'" style="background: none; border: none; cursor: pointer; color: #6b7280; font-size: 12px;">✖</button>
+                            </div>
                         </div>
                         
                         <div style="max-height: 300px; overflow-y: auto;">
                             {% if recent_notifications %}
                                 {% for notif in recent_notifications %}
-                                    <a href="{{ url_for('read_notification', notif_id=notif.id) }}" style="display: block; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; text-decoration: none; border-left: 4px solid {% if not notif.is_read %}#3b82f6{% else %}transparent{% endif %}; transition: background 0.2s;">
+                                    <a href="{{ url_for('read_notification', notif_id=notif.id) }}" class="notificacao-item" style="display: block; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; text-decoration: none; border-left: 4px solid {% if not notif.is_read %}#3b82f6{% else %}transparent{% endif %}; transition: background 0.2s;">
                                         <p style="margin: 0 0 4px 0; font-size: 13px; color: #374151; line-height: 1.4;">{{ notif.message }}</p>
                                         <span style="font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase;">
                                             <i class="far fa-clock"></i> {{ notif.created_at.strftime('%d/%m %H:%M') }}
@@ -86,6 +109,12 @@
                 <a href="{{ url_for('login') }}">Entrar</a>
                 <a href="{{ url_for('register') }}?type=professional" class="btn-primary branco">Cadastre-se</a>
                 {% endif %}
+                
+                <!-- Botão Alternador de Tema -->
+                <button id="theme-toggle" type="button" class="hidden" style="margin-left: 10px;">
+                    <i id="theme-toggle-dark-icon" class="hidden fas fa-moon text-lg"></i>
+                    <i id="theme-toggle-light-icon" class="hidden fas fa-sun text-lg"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -271,7 +300,85 @@ document.addEventListener('click', function(e) {
             {% endif %}
             </script>
 
-    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const unreadCount = {{ unread_notifications_count | default(0) }}; 
+        const somTocado = sessionStorage.getItem('notificacao_tocada_' + unreadCount);
+
+        if (unreadCount > 0 && !somTocado) {
+            const playSound = () => {
+                const audioObj = document.getElementById('som-notificacao');
+                if (audioObj) {
+                    audioObj.play().catch(e => console.log("Autoplay bloqueado pelo navegador"));
+                }
+                sessionStorage.setItem('notificacao_tocada_' + unreadCount, 'true');
+                window.removeEventListener('mousemove', playSound);
+            };
+            window.addEventListener('mousemove', playSound);
+        }
+    });
+
+    function marcarTodasComoLidas() {
+        fetch('/notificacoes/marcar-lidas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const badge = document.getElementById('badge-notificacao');
+                if (badge) badge.style.display = 'none';
+                
+                const items = document.querySelectorAll('.notificacao-item');
+                items.forEach(item => {
+                    item.style.borderLeftColor = 'transparent';
+                });
+                
+                const btn = document.getElementById('btn-ler-todas');
+                if (btn) btn.style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Erro ao marcar notificações:', error));
+    }
+</script>
+
+<script>
+    var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+    if (document.documentElement.classList.contains('dark')) {
+        themeToggleLightIcon.classList.remove('hidden');
+    } else {
+        themeToggleDarkIcon.classList.remove('hidden');
+    }
+
+    var themeToggleBtn = document.getElementById('theme-toggle');
+
+    themeToggleBtn.addEventListener('click', function() {
+        themeToggleDarkIcon.classList.toggle('hidden');
+        themeToggleLightIcon.classList.toggle('hidden');
+
+        if (localStorage.getItem('color-theme')) {
+            if (localStorage.getItem('color-theme') === 'light') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            }
+        } else {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+    });
+</script>
 
     {% block extra_js %}{% endblock %}
 </body>
