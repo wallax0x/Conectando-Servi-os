@@ -710,6 +710,32 @@ def detalhes_solicitacao(request_id):
     return render_template('detalhes_solicitacao.html', solicitacao=solicitacao)
 
 
+@app.route('/solicitacao/<int:request_id>/cancelar', methods=['POST'])
+@login_required
+def cancelar_solicitacao(request_id):
+    solicitacao = ServiceRequest.query.get_or_404(request_id)
+    
+    # Regra de Segurança: Apenas o cliente que criou a solicitação pode cancelá-la
+    if solicitacao.client_id != current_user.id:
+        flash('Acesso negado. Você não tem permissão para cancelar este pedido.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    # Regra de Negócio: Não cancelar se já estiver concluído ou cancelado
+    if solicitacao.status.lower() in ['concluído', 'concluido', 'completed', 'cancelado', 'cancelled']:
+        flash('Este pedido não pode mais ser cancelado.', 'warning')
+        return redirect(url_for('detalhes_solicitacao', request_id=solicitacao.id))
+        
+    try:
+        solicitacao.status = 'Cancelado'
+        db.session.commit()
+        flash('Solicitação cancelada com sucesso.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Erro ao cancelar a solicitação.', 'danger')
+        
+    return redirect(url_for('detalhes_solicitacao', request_id=solicitacao.id))
+
+
 @app.route('/enviar-orcamento/<int:request_id>', methods=['POST'])
 @login_required
 def enviar_orcamento(request_id):

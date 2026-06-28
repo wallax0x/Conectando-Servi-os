@@ -92,11 +92,18 @@
                 </div>
             </div>
             
-            <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-4">
-                <a href="{{ url_for('dashboard') }}" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-8 rounded-xl transition text-center shadow-sm">
+            <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-4 items-center">
+                {% if current_user.id == solicitacao.client_id and solicitacao.status|lower not in ['cancelado', 'cancelled', 'concluído', 'concluido', 'completed'] %}
+                    <form action="{{ url_for('cancelar_solicitacao', request_id=solicitacao.id) }}" method="POST" class="inline m-0 w-full sm:w-auto" onsubmit="return confirm('Tem certeza que deseja cancelar esta solicitação? Esta ação não pode ser desfeita.');">
+                        <button type="submit" class="px-6 py-3 bg-red-50 text-red-600 font-bold rounded-xl border border-red-100 hover:bg-red-100 transition-colors shadow-sm flex items-center justify-center gap-2 w-full sm:w-auto">
+                            <i class="fas fa-times-circle"></i> Cancelar
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{{ url_for('dashboard') }}" class="w-full sm:w-auto bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-8 rounded-xl transition text-center shadow-sm">
                     Voltar
                 </a>
-                <a href="{{ url_for('chat', request_id=solicitacao.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                <a href="{{ url_for('chat', request_id=solicitacao.id) }}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition shadow-md flex items-center justify-center gap-2">
                     <i class="fas fa-comments"></i> Abrir Chat
                 </a>
             </div>
