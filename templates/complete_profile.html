@@ -15,8 +15,27 @@
             <p class="text-lg text-gray-500 mt-3">Adicione informações detalhadas para atrair mais clientes e gerar confiança.</p>
         </div>
 
-        <form method="POST" action="{{ url_for('complete_professional_profile') }}" class="space-y-8">
+        <form method="POST" action="{{ url_for('complete_professional_profile') }}" enctype="multipart/form-data" class="space-y-8">
             
+            <div class="mb-8">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-camera text-blue-600"></i> Sua Foto de Perfil
+                </h3>
+                <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 flex items-center gap-6">
+                    <div class="relative cursor-pointer group" onclick="document.getElementById('foto_upload').click()">
+                        <img id="preview_foto" src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=e0f2fe&color=0369a1" class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md transition-transform group-hover:scale-105">
+                        <div class="absolute bottom-0 right-0 bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                            <i class="fas fa-upload text-xs"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-900">Adicione uma foto profissional</p>
+                        <p class="text-sm text-gray-500">Isso aumenta suas chances de ser contratado.<br>Formatos: JPG, PNG ou WEBP (Máx. 2MB).</p>
+                    </div>
+                    <input type="file" name="foto_perfil" id="foto_upload" class="hidden" accept="image/png, image/jpeg, image/webp" onchange="previewImage(event)">
+                </div>
+            </div>
+
             <!-- SEÇÃO: DADOS BÁSICOS -->
             <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
@@ -111,4 +130,17 @@
         </form>
     </div>
 </div>
+
+<script>
+function previewImage(event) {
+    const input = event.target;
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview_foto').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 {% endblock %}

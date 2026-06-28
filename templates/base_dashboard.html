@@ -50,20 +50,20 @@
                     </li>
 
                     <li class="nav-item dropdown user-menu">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img src="{{ url_for('static', filename='dist/assets/img/user2-160x160.jpg') }}" class="user-image rounded-circle shadow" alt="User Image" />
-                            <span class="d-none d-md-inline">Administrador</span>
+                        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fs-4 text-secondary"></i>
+                            <span class="d-none d-md-inline ms-2 text-secondary fw-medium">Administrador</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-                            <li class="user-header text-bg-primary">
-                                <img src="{{ url_for('static', filename='dist/assets/img/user2-160x160.jpg') }}" class="rounded-circle shadow" alt="User Image" />
-                                <p>
-                                    Administrador
-                                    <small>Membro desde Junho 2026</small>
-                                </p>
+                        <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
+                            <li class="user-header bg-primary text-white rounded-top-3 d-flex flex-column justify-content-center align-items-center">
+                                <i class="fas fa-user-shield fa-3x mb-2"></i>
+                                <p class="m-0 fw-bold fs-5">Administrador</p>
+                                <small class="opacity-75">Gestão da Plataforma</small>
                             </li>
-                            <li class="user-footer">
-                                <a href="{{ url_for('admin') }}" class="btn btn-default btn-flat float-end">Sair</a>
+                            <li class="user-footer bg-light rounded-bottom-3 d-flex justify-content-end p-3">
+                                <a href="/logout" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                                    Sair <i class="fas fa-sign-out-alt ms-1"></i>
+                                </a>
                             </li>
                         </ul>
                     </li>
@@ -74,9 +74,10 @@
 
         <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
             <div class="sidebar-brand">
-                <a href="{{ url_for('admin_dashboard') }}" class="brand-link">
-                    <img src="{{ url_for('static', filename='dist/assets/img/AdminLTELogo.png') }}" alt="Logo" class="brand-image opacity-75 shadow" />
-                    <span class="brand-text fw-bold">AdminLTE 4</span>
+                <a href="/admin/dashboard" class="brand-link text-decoration-none text-center border-bottom border-secondary">
+                    <span class="brand-text fw-light text-white fs-5">
+                        <i class="fas fa-handshake text-primary me-2"></i>Conectando<strong class="text-primary">Serviços</strong>
+                    </span>
                 </a>
             </div>
 

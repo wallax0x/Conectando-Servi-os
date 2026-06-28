@@ -5,227 +5,174 @@
 {% block extra_css %}
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+        font-family: 'Outfit', sans-serif;
+    }
+    
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    
     .delay-100 { animation-delay: 0.1s; }
     .delay-200 { animation-delay: 0.2s; }
     .delay-300 { animation-delay: 0.3s; }
+
+    .premium-shadow {
+        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05);
+    }
     
-    .hover-card-effect { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .hover-card-effect:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
-    .hover-card-effect:hover .icon-box-anim { transform: scale(1.1) rotate(5deg); }
+    .gradient-text {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .hover-lift {
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px -15px rgba(37, 99, 235, 0.15);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Início do Conteúdo do Dashboard -->
-<div class="bg-gray-50 min-h-screen pb-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="bg-[#f8fafc] min-h-screen pb-16 font-['Outfit']">
+    
+    <!-- Hero Section -->
+    <div class="relative bg-white overflow-hidden border-b border-gray-100">
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 blur-3xl opacity-70 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-gradient-to-tr from-teal-50 to-blue-50 blur-3xl opacity-70 pointer-events-none"></div>
         
-        <!-- Cabeçalho e Botão -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4 animate-fade-in">
-            <div>
-                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Olá, {{ current_user.name }}! 👋</h1>
-                <p class="text-gray-500 mt-1 font-medium">Bem-vindo de volta ao seu painel de solicitações.</p>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div class="max-w-2xl animate-fade-in-up">
+                    <span class="inline-block py-1.5 px-4 rounded-full bg-blue-50 text-blue-600 text-xs font-black tracking-widest uppercase mb-6">Área do Cliente</span>
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight mb-4">
+                        Olá, <span class="gradient-text">{{ current_user.name.split(' ')[0] }}</span>! 👋
+                    </h1>
+                    <p class="text-lg text-gray-500 font-medium mb-8 leading-relaxed">O que você precisa resolver hoje? Acompanhe seus pedidos ou encontre novos profissionais para o seu projeto.</p>
+                    
+                    <a href="{{ url_for('search') }}" class="inline-flex items-center gap-3 bg-gray-900 hover:bg-black text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-gray-200 transition-all duration-300 hover:scale-105 active:scale-95 group">
+                        <i class="fas fa-search text-gray-400 group-hover:text-white transition-colors"></i> 
+                        <span>Buscar Profissionais</span>
+                        <i class="fas fa-arrow-right ml-2 opacity-70 group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+                
+                <div class="hidden md:flex flex-shrink-0 items-center justify-center animate-fade-in delay-200">
+                    <img src="{% if current_user.profile_image %}{% if current_user.profile_image.startswith('data:') %}{{ current_user.profile_image }}{% else %}{{ url_for('static', filename='uploads/' + current_user.profile_image) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ current_user.name }}&background=e0f2fe&color=0369a1&size=150{% endif %}" 
+                         alt="Foto de Perfil" 
+                         class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover shadow-lg border-4 border-white bg-blue-50">
+                </div>
             </div>
-            <a href="{{ url_for('search') }}" class="group bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-2xl shadow-lg shadow-blue-200 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
-                <i class="fas fa-search group-hover:rotate-12 transition-transform"></i> Buscar Profissionais
-            </a>
         </div>
+    </div>
 
-        <!-- Cards de Estatísticas -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <!-- Seção 1: Top Cards (Resumo) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Card Pendentes -->
-            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-100 relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="icon-box-anim bg-gradient-to-br from-orange-400 to-orange-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-orange-100 transition-transform duration-300 relative z-10">
+            <!-- Pendentes -->
+            <div class="bg-orange-50 rounded-2xl p-6 flex items-center gap-4 shadow-sm border border-orange-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center text-xl">
                     <i class="far fa-clock"></i>
                 </div>
-                <div class="relative z-10">
-                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_pendentes }}">{{ total_pendentes }}</h3>
-                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Pendentes</p>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ total_pendentes }}</h3>
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Pendentes</p>
                 </div>
             </div>
 
-            <!-- Card Concluídos -->
-            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-200 relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="icon-box-anim bg-gradient-to-br from-green-400 to-green-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-green-100 transition-transform duration-300 relative z-10">
+            <!-- Concluídos -->
+            <div class="bg-green-50 rounded-2xl p-6 flex items-center gap-4 shadow-sm border border-green-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="relative z-10">
-                    <h3 class="text-4xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_concluidos }}">{{ total_concluidos }}</h3>
-                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Concluídos</p>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">{{ total_concluidos }}</h3>
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Concluídos</p>
                 </div>
             </div>
 
-            <!-- Card Total Investido -->
-            <div class="bg-white rounded-[2rem] p-7 shadow-sm border border-gray-50 flex items-center gap-6 hover-card-effect animate-fade-in delay-300 relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500"></div>
-                <div class="icon-box-anim bg-gradient-to-br from-blue-500 to-indigo-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-blue-100 transition-transform duration-300 relative z-10">
+            <!-- Total Investido -->
+            <div class="bg-blue-50 rounded-2xl p-6 flex items-center gap-4 shadow-sm border border-blue-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl">
                     <i class="fas fa-wallet"></i>
                 </div>
-                <div class="relative z-10">
-                    <div class="flex items-baseline gap-1">
-                        <span class="text-gray-400 font-bold text-sm">R$</span>
-                        <h3 class="text-3xl font-black text-gray-900 leading-none count-up-val" data-value="{{ total_investido }}" data-decimals="2">R$ {{ "%.2f"|format(total_investido) }}</h3>
-                    </div>
-                    <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-nowrap">Total Investido</p>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">R$ {{ "%.2f"|format(total_investido) }}</h3>
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Investido</p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Solicitações Recentes -->
-            <div class="lg:col-span-2 mb-8 animate-fade-in delay-300">
-                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span class="w-2 h-8 bg-blue-600 rounded-full"></span>
-                    Solicitações Recentes
-                </h2>
-                
-                {% if requests %}
-                    <div class="space-y-4">
-                        {% for req in requests %}
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 hover:shadow-xl hover:border-blue-100 group">
-                            <div class="flex items-center gap-4">
-                                <div class="bg-blue-50 text-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                                    {{ req.professional.user.name[0] | upper }}
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900 text-lg">{{ req.professional.user.name }}</h4>
-                                    <p class="text-blue-500 text-sm font-semibold">{{ req.professional.category.name }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex flex-col md:items-center">
-                                <span class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Valor</span>
-                                <span class="font-black text-gray-900 text-lg">R$ {{ "%.2f"|format(req.final_price or req.budget or 0) }}</span>
-                            </div>
-
-                            <div>
-                                <span class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter
-                                    {% if req.status in ['concluido', 'completed'] %} bg-green-100 text-green-700
-                                    {% elif req.status == 'aceito' %} bg-blue-100 text-blue-700
-                                    {% elif req.status == 'CANCELADO' %} bg-red-100 text-red-700
-                                    {% else %} bg-orange-100 text-orange-700 {% endif %}">
-                                    {{ req.status | replace('_', ' ') | upper }}
-                                </span>
-                            </div>
-
-                            <div class="flex gap-3 justify-end items-center">
-                                {# Chat - Esconder se estiver cancelado #}
-                                {% if req.status != 'CANCELADO' %}
-                                <a href="{{ url_for('chat', request_id=req.id) }}" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Abrir Chat">
-                                    <i class="fas fa-comments text-lg"></i>
-                                </a>
-                                {% endif %}
-                                
-                                <button onclick="abrirModal('modal-detalhe-{{ req.id }}')" class="w-10 h-10 flex items-center justify-center text-gray-400 bg-gray-50 hover:bg-gray-900 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Ver Detalhes">
-                                    <i class="fas fa-eye text-lg"></i>
-                                </button>
-                                
-                                {# Ação de Cancelar - Apenas para pedidos pendentes #}
-                                {% if req.status in ['pendente', 'pending', 'orcamento_enviado'] %}
-                                    <form action="{{ url_for('cancelar_pedido', request_id=req.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar esta solicitação?');" class="inline">
-                                        <button type="submit" class="w-10 h-10 flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-500 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Cancelar Pedido">
-                                            <i class="fas fa-times text-lg"></i>
-                                        </button>
-                                    </form>
-                                {% endif %}
-
-                                {# Ação de Avaliar - Apenas para concluídos e sem review #}
-                                {% if (req.status == 'concluido' or req.status == 'completed') and not req.review %}
-                                    <a href="{{ url_for('avaliar_servico', request_id=req.id) }}" class="w-10 h-10 flex items-center justify-center text-yellow-500 bg-yellow-50 hover:bg-yellow-500 hover:text-white rounded-xl transition-all duration-300 shadow-sm" title="Avaliar Profissional">
-                                        <i class="fas fa-star text-lg"></i>
-                                    </a>
-                                {% endif %}
-                            </div>
+        <!-- Seção 2: Solicitações Recentes -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Solicitações Recentes</h2>
+            <!-- Grid horizontal para os cards de serviço -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for s in solicitacoes[:4] %} <!-- Mostra apenas as 4 mais recentes -->
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center font-bold">
+                            <i class="fas fa-user-alt"></i>
                         </div>
-
-                        <!-- Modal de Detalhes da Solicitação -->
-                        <div id="modal-detalhe-{{ req.id }}" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center backdrop-blur-sm p-4 transition-all duration-300">
-                            <div class="bg-white rounded-[2rem] p-8 max-w-lg w-full shadow-2xl animate-fade-in">
-                                <div class="flex justify-between items-center mb-6 border-b border-gray-50 pb-4">
-                                    <h3 class="text-2xl font-black text-gray-900 tracking-tight">Detalhes do Pedido</h3>
-                                    <button onclick="fecharModal('modal-detalhe-{{ req.id }}')" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-300">
-                                        <i class="fas fa-times text-xl"></i>
-                                    </button>
-                                </div>
-                                
-                                <div class="space-y-5">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Profissional</span>
-                                        <span class="font-bold text-gray-900 bg-blue-50 text-blue-600 px-3 py-1 rounded-lg">{{ req.professional.user.name }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Categoria</span>
-                                        <span class="font-bold text-gray-700">{{ req.professional.category.name }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Status Atual</span>
-                                        <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter
-                                            {% if req.status in ['concluido', 'completed'] %} bg-green-100 text-green-700
-                                            {% elif req.status == 'aceito' %} bg-blue-100 text-blue-700
-                                            {% elif req.status == 'CANCELADO' %} bg-red-100 text-red-700
-                                            {% else %} bg-orange-100 text-orange-700 {% endif %}">
-                                            {{ req.status | replace('_', ' ') | upper }}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="mt-6 pt-6 border-t border-gray-50">
-                                        <span class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-3">Descrição Completa</span>
-                                        <div class="bg-gray-50 p-5 rounded-2xl text-gray-600 text-sm leading-relaxed border border-gray-100 italic">
-                                            "{{ req.description or 'Nenhuma descrição fornecida.' }}"
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-8 flex gap-3">
-                                    <button onclick="fecharModal('modal-detalhe-{{ req.id }}')" class="flex-1 bg-gray-900 hover:bg-black text-white font-bold py-3.5 rounded-2xl transition-all duration-300 shadow-lg shadow-gray-200">
-                                        Entendido
-                                    </button>
-                                </div>
-                            </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-900 truncate w-32">{{ s.professional.user.name if s.professional else 'Aguardando' }}</h4>
+                            <p class="text-xs text-gray-500">{{ s.professional.category.name if s.professional and s.professional.category else 'Outros' }}</p>
                         </div>
-                        {% endfor %}
                     </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-gray-900">R$ {{ "%.2f"|format(s.final_price or s.budget or 0) }}</span>
+                        {% if s.status|upper in ['CONCLUÍDO', 'CONCLUIDO', 'COMPLETED', 'FINALIZADO'] %}
+                            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">CONCLUÍDO</span>
+                        {% else %}
+                            <span class="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-bold">{{ s.status }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <a href="{{ url_for('chat', request_id=s.id) }}" class="flex-1 bg-blue-600 text-white text-xs text-center py-2 rounded-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105 active:scale-95 shadow-sm">
+                            Chat
+                        </a>
+                        
+                        <a href="{{ url_for('detalhes_solicitacao', request_id=s.id) }}" class="flex-1 bg-gray-100 text-gray-700 text-xs text-center py-2 rounded-lg hover:bg-gray-200 transition-transform duration-200 hover:scale-105 active:scale-95 border border-gray-200">
+                            Detalhes
+                        </a>
+                    </div>
+                </div>
                 {% else %}
-                    <!-- Estado Vazio (Nenhuma solicitação) -->
-                    <div class="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gray-50 text-gray-300 mb-6 text-4xl">
-                            <i class="fas fa-inbox"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900">Nenhuma solicitação encontrada</h3>
-                        <p class="text-gray-500 mt-2">Você ainda não contratou nenhum serviço. Comece explorando nossos profissionais!</p>
-                    </div>
-                {% endif %}
+                <p class="text-gray-500 text-sm col-span-full">Nenhuma solicitação encontrada.</p>
+                {% endfor %}
             </div>
+        </div>
 
-            <!-- Seção de Gastos (Gráfico) -->
-            <div class="animate-fade-in delay-300">
-                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
-                    Meus Gastos
-                </h2>
+        <!-- Seção 3: Gráfico de Gastos por Categoria -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Meus Gastos por Categoria</h2>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative min-h-[300px] flex flex-col justify-center">
                 {% if total_investido > 0 %}
-                <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover-card-effect">
-                    <div class="h-64">
-                        <canvas id="gastosChart"></canvas>
+                    <div class="w-full h-72">
+                        <canvas id="graficoCategorias"></canvas>
                     </div>
-                </div>
                 {% else %}
-                <!-- Estado Vazio (Nenhum gasto) -->
-                <div class="bg-white rounded-3xl p-10 text-center shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-400 mb-4 text-3xl">
-                        <i class="fas fa-file-invoice-dollar"></i>
+                    <div class="text-center w-full py-10">
+                        <div class="w-20 h-20 bg-gray-50 text-gray-300 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-1">Nenhum gasto registrado</h3>
+                        <p class="text-sm text-gray-500 max-w-sm mx-auto">
+                            Seus investimentos e o gráfico de categorias aparecerão aqui automaticamente quando seus serviços forem concluídos.
+                        </p>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Sem gastos ainda</h3>
-                    <p class="text-gray-500 text-sm mt-1 leading-relaxed">Seus investimentos aparecerão aqui quando os serviços forem concluídos.</p>
-                </div>
                 {% endif %}
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
@@ -233,92 +180,52 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // --- Animação Count-Up ---
-        const counters = document.querySelectorAll('.count-up-val');
-        const speed = 100;
-
-        counters.forEach(counter => {
-            const animate = () => {
-                const value = +counter.getAttribute('data-value');
-                const decimals = +counter.getAttribute('data-decimals') || 0;
-                const data = +counter.innerText;
-                const time = value / speed;
-                
-                if (data < value) {
-                    const nextVal = data + (time > 0.01 ? time : 0.01);
-                    counter.innerText = nextVal.toFixed(decimals);
-                    setTimeout(animate, 10);
-                } else {
-                    counter.innerText = value.toFixed(decimals);
-                }
-            }
-            animate();
-        });
-
-        // --- Gráfico de Gastos ---
-        const canvas = document.getElementById('gastosChart');
-        if (!canvas) return; // Só inicializa se o elemento existir
-
-        const ctx = canvas.getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ spending_labels | tojson }},
-                datasets: [{
-                    label: 'Gasto por Categoria (R$)',
-                    data: {{ spending_values | tojson }},
-                    backgroundColor: '#2563eb',
-                    borderRadius: 8,
-                    barThickness: 30,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return ' R$ ' + context.parsed.y.toFixed(2);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true,
-                        suggestedMax: 100, // Evita decimais pequenos em eixos vazios/baixos
-                        grid: { color: '#f3f4f6' },
-                        ticks: {
-                            callback: function(value) { return 'R$ ' + value; }
-                        }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
-                }
-            }
-        });
-    });
-
-    function abrirModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden'; // Impede o scroll da página no fundo
-        }
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('graficoCategorias');
+    if (!canvas) return;
     
-    function fecharModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = 'auto'; // Devolve o scroll da página
+    const ctx = canvas.getContext('2d');
+    
+    // Paleta de cores suaves para as barras (igual à imagem de referência)
+    const coresFundo = [
+        'rgba(56, 189, 248, 0.6)', // Azul claro
+        'rgba(74, 222, 128, 0.6)', // Verde claro
+        'rgba(251, 146, 60, 0.6)', // Laranja
+        'rgba(244, 114, 182, 0.6)', // Rosa
+        'rgba(167, 139, 250, 0.6)'  // Roxo
+    ];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_categorias | tojson | default('[]') }},
+            datasets: [{
+                label: 'Valor Gasto (R$)',
+                data: {{ valores_categorias | tojson | default('[]') }},
+                backgroundColor: coresFundo,
+                borderRadius: 4,
+                barThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f3f4f6' },
+                    border: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    border: { display: false }
+                }
+            }
         }
-    }
+    });
+});
 </script>
 {% endblock %}

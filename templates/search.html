@@ -48,9 +48,9 @@
                 {% for prof in professionals %}
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col transition duration-300 hover:shadow-xl hover:-translate-y-1">
                     <div class="p-8 text-center flex-1">
-                        <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-4xl mx-auto mb-6">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
+                        <img src="{% if prof.profile_photo %}{% if prof.profile_photo.startswith('data:') %}{{ prof.profile_photo }}{% else %}{{ url_for('static', filename='uploads/' + prof.profile_photo) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ prof.user.name }}&background=e0f2fe&color=0369a1&size=150{% endif %}" 
+                             alt="Foto de {{ prof.user.name }}" 
+                             class="w-20 h-20 mx-auto mb-6 rounded-full object-cover border-4 border-blue-50 shadow-sm">
                         
                         <h5 class="text-xl font-bold text-gray-900 mb-1">{{ prof.user.name }}</h5>
                         <p class="text-blue-600 font-semibold text-sm mb-4 bg-blue-50 inline-block px-4 py-1 rounded-full">

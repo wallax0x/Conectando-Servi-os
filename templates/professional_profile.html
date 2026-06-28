@@ -19,11 +19,9 @@
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                     <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
                         <div class="w-32 h-32 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-5xl font-bold overflow-hidden shadow-lg border-4 border-white shrink-0">
-                            {% if professional.user.profile_image %}
-                                <img src="{{ professional.user.profile_image }}" class="w-full h-full object-cover">
-                            {% else %}
-                                {{ professional.user.name[0] | upper }}
-                            {% endif %}
+                            <img src="{% if professional.profile_photo %}{% if professional.profile_photo.startswith('data:') %}{{ professional.profile_photo }}{% else %}{{ url_for('static', filename='uploads/' + professional.profile_photo) }}{% endif %}{% elif professional.user.profile_image %}{% if professional.user.profile_image.startswith('data:') %}{{ professional.user.profile_image }}{% else %}{{ url_for('static', filename='uploads/' + professional.user.profile_image) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ professional.user.name }}&background=e0f2fe&color=0369a1&size=150{% endif %}" 
+                                 alt="Foto de {{ professional.user.name }}" 
+                                 class="w-full h-full object-cover">
                         </div>
                         <div class="text-center md:text-left flex-1">
                             <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
@@ -77,20 +75,25 @@
                 </div>
 
                 <!-- Portfólio de Fotos -->
-                {% if professional.get_portfolio_photos() %}
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                     <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                         <span class="w-1.5 h-6 bg-green-600 rounded-full"></span> Portfólio de Trabalhos
                     </h2>
+                    {% if professional.get_portfolio_photos() %}
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {% for photo in professional.get_portfolio_photos() %}
-                        <div class="aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:scale-[1.02] transition duration-300 cursor-pointer" onclick="openLightbox('{{ photo }}')">
-                            <img src="{{ photo }}" class="w-full h-full object-cover">
+                        <div class="aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:scale-[1.02] transition duration-300 cursor-pointer" onclick="openLightbox('{{ url_for('static', filename='uploads/' + photo) if not photo.startswith('http') and not photo.startswith('data:') else photo }}')">
+                            <img src="{{ url_for('static', filename='uploads/' + photo) if not photo.startswith('http') and not photo.startswith('data:') else photo }}" class="w-full h-full object-cover">
                         </div>
                         {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
+                        <i class="fas fa-camera text-gray-300 text-3xl mb-2"></i>
+                        <p class="text-gray-500 text-sm">Este profissional ainda não adicionou fotos ao portfólio.</p>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
                 <!-- Avaliações -->
                 <div class="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">

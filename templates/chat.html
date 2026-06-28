@@ -120,7 +120,7 @@
         </div>
 
         <!-- Área de Mensagens -->
-        <div id="chat-box" class="h-[500px] overflow-y-auto bg-gray-50 p-6 flex flex-col gap-4">
+        <div id="chat-messages-container" class="h-[500px] overflow-y-auto bg-gray-50 p-6 flex flex-col gap-4">
             {% if messages %}
                 {% for msg in messages %}
                     {% set is_me = msg.sender_id == current_user.id %}
@@ -166,8 +166,10 @@
 
 <script>
     function scrollToBottom() {
-        var chatBox = document.getElementById("chat-box");
-        chatBox.scrollTop = chatBox.scrollHeight;
+        var chatBox = document.getElementById("chat-messages-container");
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     }
     window.onload = scrollToBottom;
     
@@ -178,5 +180,57 @@
             setTimeout(scrollToBottom, 50);
         });
     }
+
+    // Polling de Mensagens via AJAX
+    const solicitacaoId = {{ service_request.id }};
+    const chatContainer = document.getElementById('chat-messages-container');
+
+    function fetchMessages() {
+        fetch(`/api/chat/${solicitacaoId}/mensagens`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return;
+                
+                // Verifica a quantidade real de balões de mensagem
+                const currentMessageCount = chatContainer.querySelectorAll('.max-w-\\[75\\%\\]').length;
+                if (data.mensagens.length > currentMessageCount) {
+                    
+                    chatContainer.innerHTML = ''; // Limpa as antigas ou o placeholder
+                    
+                    data.mensagens.forEach(msg => {
+                        const isMe = msg.remetente_id === data.meu_id;
+                        
+                        // Desenha o balão dinamicamente usando Tailwind
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
+                        
+                        if (!isMe && msg.remetente_nome) {
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-2';
+                            nameSpan.textContent = msg.remetente_nome;
+                            msgDiv.appendChild(nameSpan);
+                        }
+                        
+                        const bubble = document.createElement('div');
+                        bubble.className = isMe 
+                            ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none px-4 py-2 max-w-[75%] shadow-sm'
+                            : 'bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-tl-none px-4 py-2 max-w-[75%] shadow-sm';
+                        
+                        const textClass = isMe ? 'text-blue-200 text-right' : 'text-gray-400';
+                        bubble.innerHTML = `<p class="text-sm leading-relaxed"></p><span class="text-[10px] block mt-1 ${textClass}">${msg.data}</span>`;
+                        bubble.querySelector('p').textContent = msg.texto; // Tratamento anti-XSS
+                        
+                        msgDiv.appendChild(bubble);
+                        chatContainer.appendChild(msgDiv);
+                    });
+                    
+                    scrollToBottom();
+                }
+            })
+            .catch(err => console.error('Erro ao buscar chat:', err));
+    }
+
+    // Executa a busca a cada 3 segundos
+    setInterval(fetchMessages, 3000);
 </script>
 {% endblock %}

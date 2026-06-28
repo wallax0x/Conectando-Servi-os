@@ -24,25 +24,24 @@
         <form method="POST" enctype="multipart/form-data" class="space-y-8">
             <input type="hidden" name="form_type" value="profile_info">
             
-            <!-- Foto de Perfil -->
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center gap-8">
-                <div class="relative group">
-                    <div class="w-32 h-32 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center text-4xl font-bold overflow-hidden border-4 border-white shadow-md">
-                        {% if user.profile_image %}
-                            <img src="{{ user.profile_image }}" class="w-full h-full object-cover">
-                        {% else %}
-                            {{ user.name[0] | upper }}
-                        {% endif %}
+            <!-- Bloco da Foto de Perfil -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row items-center gap-6">
+                <div class="relative cursor-pointer" onclick="document.getElementById('profile_photo').click()">
+                    <!-- Imagem atual ou Placeholder Jinja2 -->
+                    <img id="preview_foto" src="{% if user.profile_image %}{% if user.profile_image.startswith('data:') %}{{ user.profile_image }}{% else %}{{ url_for('static', filename='uploads/' + user.profile_image) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ user.name }}&background=e0f2fe&color=0369a1{% endif %}" class="w-24 h-24 rounded-2xl object-cover border-2 border-blue-100">
+                    
+                    <!-- Ícone da Câmera -->
+                    <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        <i class="fas fa-camera text-sm"></i>
                     </div>
-                    <label for="profile_photo" class="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-xl cursor-pointer shadow-lg hover:bg-blue-700 transition">
-                        <i class="fas fa-camera"></i>
-                        <input type="file" id="profile_photo" name="profile_photo" class="hidden" accept="image/*">
-                    </label>
                 </div>
                 <div class="text-center md:text-left">
-                    <h3 class="text-xl font-bold text-gray-900">Sua Foto</h3>
-                    <p class="text-gray-500 text-sm mt-1">Clique no ícone da câmera para alterar sua foto de perfil.<br>Formatos aceitos: JPG, PNG ou WEBP.</p>
+                    <h3 class="font-bold text-gray-900">Sua Foto</h3>
+                    <p class="text-sm text-gray-500">Clique na imagem para alterar sua foto de perfil.<br>Formatos aceitos: JPG, PNG ou WEBP.</p>
                 </div>
+                
+                <!-- Input de arquivo invisível -->
+                <input type="file" name="profile_photo" id="profile_photo" class="hidden" accept="image/png, image/jpeg, image/webp" onchange="previewImage(event)">
             </div>
 
             <!-- DADOS PESSOAIS -->
@@ -180,10 +179,10 @@
                     <div class="pt-6 border-t border-gray-50">
                         <label class="block text-sm font-semibold text-gray-700 px-1 mb-4">Portfólio de Trabalhos (Máx. 6 fotos)</label>
                         
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                        <div id="portfolio_preview_container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                             {% for photo in prof.get_portfolio_photos() %}
                             <div class="relative group aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition">
-                                <img src="{{ photo }}" class="w-full h-full object-cover">
+                                <img src="{{ url_for('static', filename='uploads/' + photo) if not photo.startswith('http') and not photo.startswith('data:') else photo }}" class="w-full h-full object-cover">
                                 <form action="{{ url_for('remover_foto_portfolio', photo_index=loop.index0) }}" method="POST"
                                     class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                                     <button type="submit" class="bg-red-600 text-white p-2 rounded-xl hover:bg-red-700 transition">
@@ -193,13 +192,11 @@
                             </div>
                             {% endfor %}
                             
-                            {% if prof.get_portfolio_photos()|length < 6 %}
-                            <label for="portfolio_upload" class="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition text-gray-400 hover:text-blue-500">
+                            <label for="portfolio_upload" class="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition text-gray-400 hover:text-blue-500 {% if prof.get_portfolio_photos()|length >= 6 %}hidden{% endif %}">
                                 <i class="fas fa-plus text-2xl"></i>
                                 <span class="text-[10px] font-bold uppercase tracking-widest">Adicionar Foto</span>
-                                <input type="file" id="portfolio_upload" name="portfolio_photos" class="hidden" accept="image/*" multiple>
                             </label>
-                            {% endif %}
+                            <input type="file" id="portfolio_upload" name="portfolio_photos" class="hidden" accept="image/png, image/jpeg, image/webp" multiple onchange="previewPortfolio(event)">
                         </div>
                         <p class="text-[10px] text-gray-400 italic">Dica: Mostre fotos reais do seu trabalho para passar mais confiança aos clientes.</p>
                     </div>
@@ -308,6 +305,17 @@
 </div>
 
 <script>
+    function previewImage(event) {
+        const input = event.target;
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview_foto').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openModal() {
         document.getElementById('deleteModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -316,6 +324,35 @@
     function closeModal() {
         document.getElementById('deleteModal').classList.add('hidden');
         document.body.style.overflow = 'auto';
+    }
+
+    function previewPortfolio(event) {
+        const container = document.getElementById('portfolio_preview_container');
+        const files = event.target.files;
+        
+        // As imagens já cadastradas (as divs relativas de preview sem contar o addBtn)
+        const currentImages = container.querySelectorAll('.relative.group').length;
+        
+        if (files.length + currentImages > 6) {
+            alert("Você só pode adicionar no máximo 6 fotos no portfólio.");
+            return;
+        }
+
+        for(let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if(!file.type.match('image.*')) continue;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'relative group aspect-square rounded-2xl overflow-hidden border border-blue-400 shadow-sm transition';
+                div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                
+                const addBtn = container.querySelector('label[for="portfolio_upload"]');
+                container.insertBefore(div, addBtn);
+            }
+            reader.readAsDataURL(file);
+        }
     }
 </script>
 {% endblock %}

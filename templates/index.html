@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
 {% block content %}
 <section class="hero">
     <div class="hero-overlay">
@@ -7,14 +11,20 @@
             <h1>Encontre o Profissional Perfeito para Seu Projeto</h1>
             <p>Conectamos você com os melhores prestadores de serviço da sua região</p>
 
-            <form action="{{ url_for('search') }}" method="get" class="hero-search">
-                <select name="category" class="search-input">
-                    <option value="">Qual serviço você precisa?</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
+            <form method="GET" action="{{ request.path }}" id="form-filtro" class="w-full max-w-2xl mx-auto relative shadow-lg rounded-xl mt-6">
+                <select name="categoria_id" onchange="this.form.submit()" class="block w-full appearance-none bg-white border-0 text-gray-700 py-4 px-5 pr-8 rounded-xl leading-tight focus:outline-none focus:ring-4 focus:ring-blue-300 cursor-pointer text-lg font-medium shadow-sm transition-shadow">
+                    <option value="">Qual serviço você precisa? (Ver todos)</option>
+                    
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if request.args.get('categoria_id')|string == cat.id|string %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
                     {% endfor %}
                 </select>
-
+                
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-500">
+                    <i class="fas fa-chevron-down text-lg"></i>
+                </div>
             </form>
         </div>
     </div>
@@ -24,11 +34,13 @@
     <div class="container">
         <h2 class="section-title">Categorias Populares</h2>
 
-        <div class="categories-grid">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for category in categories %}
-            <a href="{{ url_for('search') }}?category={{ category.id }}" class="category-card">
-                <i class="fas {{ category.icon or 'fa-tools' }}"></i>
-                <h3>{{ category.name }}</h3>
+            <a href="{{ url_for('search', category=category.id) }}" class="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                <div class="text-4xl text-blue-600 mb-4">
+                    <i class="fas {{ category.icon or 'fa-tools' }}"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-center">{{ category.name }}</h3>
             </a>
             {% endfor %}
         </div>
@@ -42,8 +54,10 @@
         <div class="professionals-grid">
             {% for prof in professionals %}
             <div class="professional-card">
-                <div class="prof-photo">
-                    <i class="fas fa-user-circle"></i>
+                <div class="flex justify-center mb-4">
+                    <img src="{% if prof.profile_photo %}{% if prof.profile_photo.startswith('data:') %}{{ prof.profile_photo }}{% else %}{{ url_for('static', filename='uploads/' + prof.profile_photo) }}{% endif %}{% elif prof.user.profile_image %}{% if prof.user.profile_image.startswith('data:') %}{{ prof.user.profile_image }}{% else %}{{ url_for('static', filename='uploads/' + prof.user.profile_image) }}{% endif %}{% else %}https://ui-avatars.com/api/?name={{ prof.user.name }}&background=e0f2fe&color=0369a1&size=150{% endif %}" 
+                         alt="Foto de perfil de {{ prof.user.name }}" 
+                         class="w-24 h-24 rounded-full object-cover border-4 border-gray-50 shadow-sm transition-transform duration-300 hover:scale-105">
                 </div>
                 <h3>{{ prof.user.name }}</h3>
                 <p class="category">{{ prof.category.name }}</p>

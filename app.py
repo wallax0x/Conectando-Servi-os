@@ -11,6 +11,7 @@ from flask_login import (
     LoginManager, login_user, logout_user, login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from validate_docbr import CPF
 from sqlalchemy import or_, func, extract
 from functools import wraps
@@ -26,6 +27,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "DATABASE_URL", "sqlite:///database.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ---------- Inicializar DB ----------
 try:
@@ -161,9 +165,17 @@ def validate_cep_garanhuns(cep: str):
 
 @app.route('/')
 def index():
+    categoria_id = request.args.get('categoria_id')
     categories = ServiceCategory.query.order_by(ServiceCategory.name).all()
-    professionals = Professional.query.order_by(
-        Professional.created_at.desc()).limit(6).all()
+    
+    query = Professional.query
+    
+    if categoria_id and categoria_id.isdigit():
+        query = query.filter_by(category_id=int(categoria_id))
+        
+    professionals = query.order_by(
+        Professional.id.desc()).limit(6).all()
+        
     return render_template('index.html', categories=categories, professionals=professionals)
 
 
@@ -448,6 +460,16 @@ def complete_professional_profile():
             response_time=request.form.get('response_time') or '24 horas',
             created_at=datetime.utcnow()
         )
+        # Upload de Foto de Perfil
+        if 'foto_perfil' in request.files:
+            file = request.files['foto_perfil']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                novo_nome = f"prof_{current_user.id}_{filename}"
+                caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], novo_nome)
+                file.save(caminho_salvar)
+                prof.profile_photo = novo_nome
+
         db.session.add(prof)
         db.session.commit()
         flash('Perfil profissional criado com sucesso!', 'success')
@@ -539,67 +561,52 @@ def dashboard():
                                chart_labels=chart_labels,
                                chart_data=chart_data)
     else:
+        import re
+        from collections import defaultdict
+
         # Busca todas as solicitações para filtrar via Python
-        requests_list = ServiceRequest.query.filter_by(
+        todas_solicitacoes = ServiceRequest.query.filter_by(
             client_id=current_user.id).order_by(ServiceRequest.created_at.desc()).all()
         
-        # Estrutura para os últimos 6 meses
-        meses_labels_full = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-        chart_labels = []
-        chart_data = [0.0] * 6
-        hoje = datetime.now()
-        
-        meses_map = {}
-        for i in range(5, -1, -1):
-            d = hoje - timedelta(days=i*30)
-            m_idx = d.month
-            chart_labels.append(meses_labels_full[m_idx-1])
-            meses_map[m_idx] = 5 - i
-
-        # Filtros via Python para garantir precisão
-        total_pendentes = sum(1 for r in requests_list if r.status and r.status.upper() in ['PENDENTE', 'PENDING', 'ORCAMENTO_ENVIADO', 'ORÇAMENTO ENVIADO'])
-        total_concluidos = sum(1 for r in requests_list if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO'])
-        
-        # Conversão segura para Total Investido e Gráfico
+        total_pendentes = 0
+        total_concluidos = 0
         total_investido = 0.0
-        for r in requests_list:
-            if r.status and r.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO']:
-                valor_bruto = str(r.final_price if r.final_price is not None else (r.budget if r.budget is not None else 0))
-                v_float = limpar_valor_moeda(valor_bruto)
-                total_investido += v_float
+        gastos_por_categoria = defaultdict(float)
+        
+        for s in todas_solicitacoes:
+            if s.status and s.status.upper() in ['PENDENTE', 'PENDING', 'ORCAMENTO_ENVIADO', 'ORÇAMENTO ENVIADO']:
+                total_pendentes += 1
                 
-                if r.created_at and r.created_at.month in meses_map:
-                    chart_data[meses_map[r.created_at.month]] += v_float
+            elif s.status and s.status.upper() in ['CONCLUIDO', 'CONCLUÍDO', 'COMPLETED', 'FINALIZADO']:
+                total_concluidos += 1
+                
+                # Limpeza extrema do valor
+                valor_db = s.final_price if s.final_price is not None else (s.budget if s.budget is not None else 0)
+                valor_bruto = str(valor_db).upper().replace('R$', '').replace(' ', '').replace(',', '.')
+                valor_limpo = re.sub(r'[^0-9.]', '', valor_bruto)
+                
+                if valor_limpo:
+                    try:
+                        valor_float = float(valor_limpo)
+                        total_investido += valor_float
+                        
+                        # Agrupa gastos por categoria
+                        nome_categoria = s.professional.category.name if s.professional and s.professional.category else 'Outros'
+                        gastos_por_categoria[nome_categoria] += valor_float
+                    except ValueError:
+                        pass
 
-        # Mantendo 'stats' para compatibilidade
-        stats = {
-            'pendentes': total_pendentes,
-            'concluidos': total_concluidos,
-            'total_investido': total_investido
-        }
+        # Prepara listas para o Chart.js
+        labels_categorias = list(gastos_por_categoria.keys())
+        valores_categorias = list(gastos_por_categoria.values())
 
-        # Gastos por Categoria (para o gráfico de barras)
-        gastos_por_cat = db.session.query(
-            ServiceCategory.name, func.sum(ServiceRequest.final_price)
-        ).join(Professional, Professional.category_id == ServiceCategory.id)\
-         .join(ServiceRequest, ServiceRequest.professional_id == Professional.id)\
-         .filter(ServiceRequest.client_id == current_user.id)\
-         .filter(func.lower(ServiceRequest.status).in_(['concluido', 'completed', 'finalizado']))\
-         .group_by(ServiceCategory.name).all()
-        
-        spending_labels = [g[0] for g in gastos_por_cat]
-        spending_values = [float(g[1] or 0) for g in gastos_por_cat]
-        
         return render_template('dashboard_client.html', 
-                               requests=requests_list, 
-                               stats=stats,
-                               total_pendentes=total_pendentes,
-                               total_concluidos=total_concluidos,
+                               solicitacoes=todas_solicitacoes, 
+                               total_pendentes=total_pendentes, 
+                               total_concluidos=total_concluidos, 
                                total_investido=total_investido,
-                               spending_labels=spending_labels,
-                               spending_values=spending_values,
-                               chart_labels=chart_labels,
-                               chart_data=chart_data)
+                               labels_categorias=labels_categorias,
+                               valores_categorias=valores_categorias)
 
 
 # --------------------------
@@ -673,6 +680,17 @@ def chat(request_id):
         request_id=request_id).order_by(Message.timestamp.asc()).all()
 
     return render_template('chat.html', service_request=service_request, messages=messages)
+
+
+@app.route('/solicitacao/<int:request_id>/detalhes')
+@login_required
+def detalhes_solicitacao(request_id):
+    solicitacao = ServiceRequest.query.get_or_404(request_id)
+    # Garante que apenas o cliente dono ou o profissional possam ver
+    if current_user.id not in [solicitacao.client_id, solicitacao.professional.user_id] and getattr(current_user, 'user_type', '') != 'admin':
+        flash('Acesso negado.', 'danger')
+        return redirect(url_for('dashboard'))
+    return render_template('detalhes_solicitacao.html', solicitacao=solicitacao)
 
 
 @app.route('/enviar-orcamento/<int:request_id>', methods=['POST'])
@@ -1203,9 +1221,11 @@ def editar_perfil():
             # Upload de Foto de Perfil
             foto = request.files.get('profile_photo')
             if foto and foto.filename:
-                import base64
-                image_content = foto.read()
-                user.profile_image = f"data:{foto.content_type};base64,{base64.b64encode(image_content).decode('utf-8')}"
+                filename = secure_filename(foto.filename)
+                novo_nome = f"user_{current_user.id}_{filename}"
+                caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], novo_nome)
+                foto.save(caminho_salvar)
+                user.profile_image = novo_nome
 
             # Se for profissional, atualizar dados do perfil profissional também
             if prof:
@@ -1217,19 +1237,26 @@ def editar_perfil():
                 prof.tags = censurar_dados((request.form.get('tags') or '').strip())
                 prof.availability = request.form.get('availability')
                 prof.service_range = request.form.get('service_range')
-
-                # Upload de Fotos do Portfólio
-                portfolio_files = request.files.getlist('portfolio_photos')
-                if portfolio_files:
-                    import base64
-                    current_portfolio = prof.get_portfolio_photos()
-                    for file in portfolio_files:
-                        if file and file.filename:
-                            img_content = file.read()
-                            img_base64 = f"data:{file.content_type};base64,{base64.b64encode(img_content).decode('utf-8')}"
-                            if len(current_portfolio) < 6:
-                                current_portfolio.append(img_base64)
-                    prof.portfolio_photos = json.dumps(current_portfolio)
+                
+                # Processamento do Portfólio (Múltiplas Fotos)
+                arquivos_portfolio = request.files.getlist('portfolio_photos')
+                
+                fotos_atuais = prof.get_portfolio_photos()
+                novas_fotos_salvas = []
+                
+                import uuid
+                for file in arquivos_portfolio:
+                    if file and file.filename != '':
+                        filename = secure_filename(file.filename)
+                        novo_nome = f"portf_{current_user.id}_{uuid.uuid4().hex[:8]}_{filename}"
+                        caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], novo_nome)
+                        file.save(caminho_salvar)
+                        novas_fotos_salvas.append(novo_nome)
+                
+                todas_fotos = (fotos_atuais + novas_fotos_salvas)[:6]
+                if todas_fotos or len(todas_fotos) == 0:
+                    import json
+                    prof.portfolio_photos = json.dumps(todas_fotos)
 
             db.session.commit()
             flash('Perfil atualizado com sucesso!', 'success')
@@ -1299,6 +1326,33 @@ def termos():
 @app.route('/privacidade')
 def privacidade():
     return render_template('pages/privacidade.html')
+
+
+# --------------------------
+# API – Chat Polling
+# --------------------------
+@app.route('/api/chat/<int:solicitacao_id>/mensagens')
+@login_required
+def get_chat_messages(solicitacao_id):
+    # Verifique se o usuário tem permissão (é o cliente ou o profissional do pedido)
+    solicitacao = ServiceRequest.query.get_or_404(solicitacao_id)
+    if current_user.id not in [solicitacao.client_id, solicitacao.professional.user_id]:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    # Busca as mensagens
+    mensagens = Message.query.filter_by(request_id=solicitacao_id).order_by(Message.timestamp.asc()).all()
+    
+    chat_data = []
+    for m in mensagens:
+        chat_data.append({
+            'id': m.id,
+            'remetente_id': m.sender_id,
+            'remetente_nome': m.sender.name if m.sender else '',
+            'texto': m.content,
+            'data': m.timestamp.strftime('%H:%M') if m.timestamp else ''
+        })
+        
+    return jsonify({'mensagens': chat_data, 'meu_id': current_user.id})
 
 
 # --------------------------

@@ -5,12 +5,16 @@
 
 {% block content %}
 <div class="container-fluid pt-4">
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-3 px-4 border-bottom-0">
-            <h3 class="card-title mb-0 fw-bold text-dark">
-                <i class="bi bi-briefcase-fill text-primary me-2"></i>
-                Lista de Profissionais
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+            <h3 class="card-title font-weight-bold m-0">
+                <i class="fas fa-briefcase text-primary me-2"></i> Lista de Profissionais
             </h3>
+            <div class="card-tools ms-auto">
+                <button onclick="window.print()" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm">
+                    <i class="fas fa-file-pdf me-1"></i> Exportar PDF
+                </button>
+            </div>
         </div>
 
         <div class="card-body p-0">
@@ -46,11 +50,11 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="{{ url_for('editar_profissao', id=profissional.id) }}" class="btn btn-sm btn-light rounded-circle text-primary me-1" title="Editar">
+                                <a href="{{ url_for('editar_profissao', id=profissional.id) }}" class="btn btn-sm btn-light rounded-circle shadow-sm text-primary me-1" title="Editar">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
                                 <form action="{{ url_for('deletar_profissao', id=profissional.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remover este profissional?');">
-                                    <button type="submit" class="btn btn-sm btn-light rounded-circle text-danger" title="Excluir">
+                                    <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" title="Excluir">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>

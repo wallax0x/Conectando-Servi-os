@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhes da Solicitação - Conectando Serviços{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Outfit', sans-serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-6 animate-fade-in-up">
+            <a href="{{ url_for('dashboard') }}" class="text-blue-600 font-semibold hover:underline flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in-up">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-8 border-b border-gray-100 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-20 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
+                    <div>
+                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wide mb-3 shadow-sm border border-blue-200">
+                            Pedido #{{ solicitacao.id }}
+                        </span>
+                        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 leading-tight">{{ solicitacao.title or 'Serviço com ' ~ solicitacao.professional.user.name }}</h1>
+                        <p class="text-gray-600 font-medium flex items-center gap-2">
+                            <i class="fas fa-user-tie text-blue-500"></i> Profissional: 
+                            <span class="text-gray-900">{{ solicitacao.professional.user.name }}</span>
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if solicitacao.status|upper in ['CONCLUÍDO', 'CONCLUIDO', 'COMPLETED', 'FINALIZADO'] %}
+                            <div class="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold border border-green-200 shadow-sm flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i> CONCLUÍDO
+                            </div>
+                        {% elif solicitacao.status|upper in ['CANCELADO', 'RECUSADO'] %}
+                            <div class="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold border border-red-200 shadow-sm flex items-center gap-2">
+                                <i class="fas fa-times-circle"></i> {{ solicitacao.status|upper }}
+                            </div>
+                        {% else %}
+                            <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl font-bold border border-yellow-200 shadow-sm flex items-center gap-2">
+                                <i class="fas fa-clock"></i> {{ solicitacao.status|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8 space-y-8">
+                <div>
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i class="fas fa-align-left"></i> Descrição da Solicitação
+                    </h3>
+                    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 text-gray-700 leading-relaxed text-lg">
+                        {{ solicitacao.description or 'Nenhuma descrição detalhada foi fornecida.' }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Categoria</h3>
+                        <p class="text-gray-900 font-bold text-xl flex items-center gap-2">
+                            <i class="fas fa-tags text-blue-500"></i> {{ solicitacao.professional.category.name if solicitacao.professional.category else 'Serviços Gerais' }}
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Orçamento / Valor</h3>
+                        <p class="text-green-600 font-extrabold text-2xl flex items-center gap-2">
+                            <i class="fas fa-money-bill-wave text-green-500"></i> R$ {{ "%.2f"|format(solicitacao.final_price or solicitacao.budget or 0) }}
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Data Preferencial</h3>
+                        <p class="text-gray-900 font-bold text-lg flex items-center gap-2">
+                            <i class="far fa-calendar-alt text-purple-500"></i> {{ solicitacao.preferred_date or 'A combinar' }}
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Endereço do Cliente</h3>
+                        <p class="text-gray-900 font-medium flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt text-red-500 mt-1"></i> 
+                            <span>{{ solicitacao.client.address or 'Endereço não cadastrado' }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-4">
+                <a href="{{ url_for('dashboard') }}" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-8 rounded-xl transition text-center shadow-sm">
+                    Voltar
+                </a>
+                <a href="{{ url_for('chat', request_id=solicitacao.id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-comments"></i> Abrir Chat
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

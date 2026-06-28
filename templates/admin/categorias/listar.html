@@ -5,9 +5,9 @@
 
 {% block content %}
 <div class="container-fluid pt-4">
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-3 px-4 border-bottom-0 d-flex justify-content-between align-items-center">
-            <h3 class="card-title mb-0 fw-bold text-dark">
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+            <h3 class="card-title mb-0 fw-bold">
                 <i class="bi bi-tags-fill text-primary me-2"></i>
                 Categorias Cadastradas
             </h3>
@@ -31,14 +31,14 @@
                         <tr>
                             <td class="ps-4 small text-muted">#{{ categoria.id }}</td>
                             <td>
-                                <span class="fw-bold text-dark">{{ categoria.name }}</span>
+                                <span class="fw-bold">{{ categoria.name if categoria.name else '<span class="text-muted fst-italic">Categoria sem nome</span>'|safe }}</span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="{{ url_for('editar_categoria', id=categoria.id) }}" class="btn btn-sm btn-light rounded-circle text-primary me-1" title="Editar">
+                                <a href="{{ url_for('editar_categoria', id=categoria.id) }}" class="btn btn-sm btn-light rounded-circle shadow-sm text-primary me-1" title="Editar">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
                                 <form action="{{ url_for('deletar_categoria', id=categoria.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta categoria?');">
-                                    <button type="submit" class="btn btn-sm btn-light rounded-circle text-danger" title="Excluir">
+                                    <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" title="Excluir">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>
